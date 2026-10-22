@@ -50,7 +50,11 @@ public class RefreshedAdvancementsTabList implements Widget {
                 width - BUTTON_MARGIN * 2,
                 BUTTON_HEIGHT,
                 tab,
-                widget -> screen.selectTab(tab.getRoot().getRoot()),
+                //? = 1.20 {
+                 widget -> screen.selectTab(tab.getRoot().getRoot()),
+                //?} else {
+                /*widget -> screen.selectTab(tab.getRoot().getAdvancementEntry()),
+                *///?}
                 Supplier::get
         );
 
@@ -96,6 +100,7 @@ public class RefreshedAdvancementsTabList implements Widget {
         int viewportHeight = height - TITLE_AREA_HEIGHT;
 
         if (contentHeight <= viewportHeight || viewportHeight <= 0) {
+            context.fill(0, 0, SCROLLBAR_WIDTH, height, 0x70_00_00_00);
             return;
         }
 
@@ -114,10 +119,8 @@ public class RefreshedAdvancementsTabList implements Widget {
                 ? (int) (scrollAmount / maxScroll * maxThumbOffset)
                 : 0;
 
-        context.fill(0, 0, 2, TITLE_AREA_HEIGHT, 0x70_00_00_00);
-
-        context.fill(0, TITLE_AREA_HEIGHT, 2, scrollbarY + thumbOffset, 0x70_00_00_00);
-        context.fill(0, scrollbarY + thumbOffset + scrollbarHeight, 2, height, 0x70_00_00_00);
+        context.fill(0, 0, SCROLLBAR_WIDTH, scrollbarY + thumbOffset, 0x70_00_00_00);
+        context.fill(0, scrollbarY + thumbOffset + scrollbarHeight, SCROLLBAR_WIDTH, height, 0x70_00_00_00);
 
         context.fill(
                 scrollbarX,

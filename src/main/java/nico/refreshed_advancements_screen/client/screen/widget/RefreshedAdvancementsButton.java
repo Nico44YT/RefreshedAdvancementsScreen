@@ -59,10 +59,10 @@ public class RefreshedAdvancementsButton extends ButtonWidget {
     protected void drawScrollableText(DrawContext context, TextRenderer textRenderer, int xMargin, int color) {
         int startX = this.getX() + xMargin;
         int endX = this.getX() + this.getWidth();
-        drawScrollableText(context, textRenderer, this.getMessage(), startX, startX, this.getY(), endX, this.getY() + this.getHeight(), color);
+        drawText(context, textRenderer, this.getMessage(), startX, startX, this.getY(), endX, this.getY() + this.getHeight(), color);
     }
 
-    protected void drawScrollableText(
+    protected void drawText(
             DrawContext context, TextRenderer textRenderer, Text text, int centerX, int startX, int startY, int endX, int endY, int color
     ) {
         int textWidth = textRenderer.getWidth(text);
