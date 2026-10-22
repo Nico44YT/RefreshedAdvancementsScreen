@@ -10,12 +10,7 @@
   "icon": "assets/refreshed_advancements_screen/icon.png",
   "environment": "*",
   "entrypoints": {
-    "client": [
-      "nico.refreshed_advancements_screen.client.Refreshed_advancements_screenClient"
-    ],
-    "main": [
-      "nico.refreshed_advancements_screen.Refreshed_advancements_screen"
-    ]
+
   },
   "mixins": [
     "refreshed_advancements_screen.mixins.json"

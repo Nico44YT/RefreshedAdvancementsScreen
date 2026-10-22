@@ -62,23 +62,23 @@ public class RefreshedAdvancementsButton extends ButtonWidget {
         drawScrollableText(context, textRenderer, this.getMessage(), startX, startX, this.getY(), endX, this.getY() + this.getHeight(), color);
     }
 
-    protected static void drawScrollableText(
+    protected void drawScrollableText(
             DrawContext context, TextRenderer textRenderer, Text text, int centerX, int startX, int startY, int endX, int endY, int color
     ) {
-        int i = textRenderer.getWidth(text);
-        int j = (startY + endY - 9) / 2 + 1;
-        int k = endX - startX;
-        if (i > k) {
-            int l = i - k;
-            double d = Util.getMeasuringTimeMs() / 1000.0;
-            double e = Math.max(l * 0.5, 3.0);
-            double f = Math.sin((Math.PI / 2) * Math.cos((Math.PI * 2) * d / e)) / 2.0 + 0.5;
-            double g = MathHelper.lerp(f, 0.0, l);
-            context.enableScissor(startX, startY, endX, endY);
-            context.drawTextWithShadow(textRenderer, text, startX - (int) g, j, color);
+        int textWidth = textRenderer.getWidth(text);
+        int renderY = (startY + endY - 9) / 2 + 1;
+        int middleX = endX - startX;
+        if (textWidth > middleX) {
+            int textStart = textWidth - middleX;
+            double time = Util.getMeasuringTimeMs() / 1000.0;
+            double e = Math.max(textStart * 0.5, 3.0);
+            double f = Math.sin((Math.PI / 2) * Math.cos((Math.PI * 2) * time / e)) / 2.0 + 0.5;
+            double g = MathHelper.lerp(f, 0.0, textStart);
+            context.enableScissor(startX, 0, endX, parent.getScreen().height);
+            context.drawTextWithShadow(textRenderer, text, startX - (int) g, renderY, color);
             context.disableScissor();
         } else {
-            context.drawTextWithShadow(textRenderer, text, centerX, j, color);
+            context.drawTextWithShadow(textRenderer, text, centerX, renderY, color);
         }
     }
 

@@ -46,7 +46,7 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
 
     @Override
     protected void init() {
-        this.tabWidgetList = new RefreshedAdvancementsTabList(this, 0, 12, SCROLL_AREA_WIDTH, height);
+        this.tabWidgetList = new RefreshedAdvancementsTabList(this, 0, 0, SCROLL_AREA_WIDTH, height);
 
         this.tabs.clear();
         this.selectedTab = null;
@@ -73,10 +73,9 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
 
         context.drawTextWithShadow(textRenderer, ADVANCEMENTS_TEXT, (SCROLL_AREA_WIDTH - textRenderer.getWidth(ADVANCEMENTS_TEXT)) / 2, 3, 0xFF_FF_FF_FF);
 
-
         context.drawVerticalLine(SCROLL_AREA_WIDTH, -1, height + 1, 0xBF_00_00_00);
         context.drawVerticalLine(SCROLL_AREA_WIDTH + 1, -1, height + 1, 0x33_FF_FF_FF);
-        context.fill(0, 0, SCROLL_AREA_WIDTH, height, 0x70_00_00_00);
+        context.fill(2, 0, SCROLL_AREA_WIDTH, height, 0x70_00_00_00);
 
         this.tabWidgetList.draw(context, mouseX, mouseY, delta);
 
@@ -243,6 +242,8 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
         if(mouseX > SCROLL_AREA_WIDTH) {
             moveTabContent(getSelectedTab(), 0, amount * 12);
             return true;
+        } else {
+            tabWidgetList.mouseScrolled(mouseX, mouseY, amount * 12);
         }
 
         return super.mouseScrolled(mouseX, mouseY, amount);
