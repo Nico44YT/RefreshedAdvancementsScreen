@@ -1,0 +1,20 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "nico.refreshed_advancements_screen.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+  ],
+  "client": [
+    "client.GameMenuScreenMixin",
+    "client.MinecraftClientMixin",
+    "client.accessor.AdvancementTabAccessor",
+    "client.accessor.ScreenAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "refreshed_advancements_screen",
+  "version": "${version}",
+  "name": "RefreshedAdvancementsScreen",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "GPL-3.0",
+  "icon": "assets/refreshed_advancements_screen/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "nico.refreshed_advancements_screen.client.Refreshed_advancements_screenClient"
+    ],
+    "main": [
+      "nico.refreshed_advancements_screen.Refreshed_advancements_screen"
+    ]
+  },
+  "mixins": [
+    "refreshed_advancements_screen.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
