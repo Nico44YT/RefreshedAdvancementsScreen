@@ -11,7 +11,7 @@ base {
 }
 
 loom {
-    accessWidenerPath = file("src/main/resources/refreshed_advancements_screen.accesswidener")
+    accessWidenerPath = file("src/main/resources/refreshed_advancements.accesswidener")
 }
 
 repositories {

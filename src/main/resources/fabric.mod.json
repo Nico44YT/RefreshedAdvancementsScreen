@@ -1,20 +1,22 @@
 {
   "schemaVersion": 1,
-  "id": "refreshed_advancements_screen",
+  "id": "refreshed_advancements",
   "version": "${version}",
-  "name": "RefreshedAdvancementsScreen",
-  "description": "",
-  "authors": [],
+  "name": "RefreshedAdvancements",
+  "description": "Gives the advancements screen a new look",
+  "authors": [
+    "Nico_44"
+  ],
   "contact": {},
   "license": "GPL-3.0",
-  "icon": "assets/refreshed_advancements_screen/icon.png",
+  "icon": "assets/refreshed_advancements/icon.png",
   "environment": "*",
-  "accessWidener": "refreshed_advancements_screen.accesswidener",
+  "accessWidener": "refreshed_advancements.accesswidener",
   "entrypoints": {
 
   },
   "mixins": [
-    "refreshed_advancements_screen.mixins.json"
+    "refreshed_advancements.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=${loader_version}",
