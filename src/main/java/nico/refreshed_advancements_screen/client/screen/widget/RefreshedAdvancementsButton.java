@@ -104,7 +104,7 @@ public class RefreshedAdvancementsButton extends ButtonWidget {
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferBuilder = tessellator.getBuffer();
         bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
-        refreshed_advancements$fillGradient(matrices.peek().getPositionMatrix(), bufferBuilder, startX, startY, endX, endY, z, colorStart, colorEnd);
+        refreshed_advancements$fillGradient(matrices.peek().getModel(), bufferBuilder, startX, startY, endX, endY, z, colorStart, colorEnd);
         tessellator.draw();
         RenderSystem.disableBlend();
         RenderSystem.enableTexture();

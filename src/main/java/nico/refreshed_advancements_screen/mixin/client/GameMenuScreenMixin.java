@@ -30,7 +30,7 @@ public abstract class GameMenuScreenMixin extends Screen {
     @ModifyArg(method = "initWidgets", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/widget/ButtonWidget;<init>(IIIILnet/minecraft/text/Text;Lnet/minecraft/client/gui/widget/ButtonWidget$PressAction;)V", ordinal = 1), index = 5)
     public ButtonWidget.PressAction redirectAdvancementsScreen(ButtonWidget.PressAction onPress) {
         if (!vanillaMode) return (widget) -> {
-            client.setScreen(SUPP.get());
+            if(client != null) client.openScreen(SUPP.get());
         };
         return onPress;
     }

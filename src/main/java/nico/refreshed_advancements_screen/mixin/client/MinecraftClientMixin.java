@@ -20,7 +20,7 @@ public abstract class MinecraftClientMixin {
     @Unique
     private static boolean vanillaMode = false;
 
-    @WrapOperation(method = "handleInputEvents", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/MinecraftClient;setScreen(Lnet/minecraft/client/gui/screen/Screen;)V", ordinal = 2))
+    @WrapOperation(method = "handleInputEvents", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/MinecraftClient;openScreen(Lnet/minecraft/client/gui/screen/Screen;)V", ordinal = 2))
     private void change(MinecraftClient instance, Screen screen, Operation<Void> original) {
         if (vanillaMode || player == null) original.call(instance, screen);
         else
