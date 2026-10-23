@@ -1,7 +1,5 @@
 package nico.refreshed_advancements_screen.mixin.client;
 
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.client.gui.screen.GameMenuScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -29,18 +27,12 @@ public abstract class GameMenuScreenMixin extends Screen {
     @Unique
     private static boolean vanillaMode = false;
 
-    //? = 1.19 {
-         @ModifyArg(method = "initWidgets", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/widget/ButtonWidget;<init>(IIIILnet/minecraft/text/Text;Lnet/minecraft/client/gui/widget/ButtonWidget$PressAction;)V", ordinal = 1), index = 5)
-        public ButtonWidget.PressAction redirectAdvancementsScreen(ButtonWidget.PressAction onPress) {
-            if(!vanillaMode) return (widget) -> {
-                client.setScreen(SUPP.get());
-            };
-            return onPress;
-        }
-    //?} else {
-    /*@WrapOperation(method = "initWidgets", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/GameMenuScreen;createButton(Lnet/minecraft/text/Text;Ljava/util/function/Supplier;)Lnet/minecraft/client/gui/widget/ButtonWidget;", ordinal = 0))
-    public ButtonWidget change(GameMenuScreen instance, Text text, Supplier<Screen> screenSupplier, Operation<ButtonWidget> original) {
-        return original.call(instance, text, vanillaMode ? screenSupplier : SUPP);
+    @ModifyArg(method = "initWidgets", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/widget/ButtonWidget;<init>(IIIILnet/minecraft/text/Text;Lnet/minecraft/client/gui/widget/ButtonWidget$PressAction;)V", ordinal = 1), index = 5)
+    public ButtonWidget.PressAction redirectAdvancementsScreen(ButtonWidget.PressAction onPress) {
+        if (!vanillaMode) return (widget) -> {
+            client.setScreen(SUPP.get());
+        };
+        return onPress;
     }
-    *///?}
+
 }

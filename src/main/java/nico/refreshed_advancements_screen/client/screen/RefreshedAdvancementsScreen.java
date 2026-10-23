@@ -13,6 +13,7 @@ import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.network.packet.c2s.play.AdvancementTabC2SPacket;
 import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.math.MathHelper;
 import nico.refreshed_advancements_screen.client.screen.widget.RefreshedAdvancementsTabList;
 import nico.refreshed_advancements_screen.mixin.client.accessor.AdvancementTabAccessor;
@@ -25,9 +26,9 @@ import java.util.Map;
 public class RefreshedAdvancementsScreen extends AdvancementsScreen implements ClientAdvancementManager.Listener {
     protected static final int SCROLL_AREA_WIDTH = 80;
 
-    private static final Text SAD_LABEL_TEXT = Text.translatable("advancements.sad_label");
-    private static final Text EMPTY_TEXT = Text.translatable("advancements.empty");
-    private static final Text ADVANCEMENTS_TEXT = Text.translatable("gui.advancements");
+    private static final Text SAD_LABEL_TEXT = new TranslatableText("advancements.sad_label");
+    private static final Text EMPTY_TEXT = new TranslatableText("advancements.empty");
+    private static final Text ADVANCEMENTS_TEXT = new TranslatableText("gui.advancements");
 
     private RefreshedAdvancementsTabList tabWidgetList;
 
@@ -129,11 +130,7 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
                     var itemMatrix = RenderSystem.getModelViewStack();
                     itemMatrix.push();
 
-                    //? =1.19.4 {
-                    /*itemMatrix.translate(0, 0, 400);
-                    *///?} else {
-                     itemMatrix.translate(SCROLL_AREA_WIDTH, 0, 400);
-                    //?}
+                    itemMatrix.translate(SCROLL_AREA_WIDTH, 0, 400);
                     advancementWidget.drawTooltip(matrices, originX, originY, accessor.refreshed_advancements$getAlpha(), x, y);
 
                     itemMatrix.pop();
