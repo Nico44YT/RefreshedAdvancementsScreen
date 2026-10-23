@@ -1,9 +1,7 @@
 package nico.refreshed_advancements_screen.client.screen;
 
-import com.google.common.collect.Maps;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.advancement.Advancement;
-import net.minecraft.advancement.AdvancementProgress;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.screen.advancement.AdvancementTab;
@@ -17,6 +15,7 @@ import net.minecraft.util.Colors;
 import net.minecraft.util.math.MathHelper;
 import nico.refreshed_advancements_screen.client.screen.widget.RefreshedAdvancementsTabList;
 import nico.refreshed_advancements_screen.mixin.client.accessor.AdvancementTabAccessor;
+import nico.refreshed_advancements_screen.mixin.client.accessor.AdvancementsScreenAccessor;
 import nico.refreshed_advancements_screen.mixin.client.accessor.ScreenAccessor;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,62 +29,48 @@ import java.util.Map;
 public class RefreshedAdvancementsScreen extends AdvancementsScreen implements ClientAdvancementManager.Listener {
     protected static final int SCROLL_AREA_WIDTH = 80;
 
-    protected final ClientAdvancementManager manager;
-
     private static final Text SAD_LABEL_TEXT = Text.translatable("advancements.sad_label");
     private static final Text EMPTY_TEXT = Text.translatable("advancements.empty");
     private static final Text ADVANCEMENTS_TEXT = Text.translatable("gui.advancements");
-
-    //? = 1.20 {
-     private final Map<Advancement, AdvancementTab> tabs = Maps.newLinkedHashMap();
-    //?} else{
-    /*private final Map<AdvancementEntry, AdvancementTab> tabs = Maps.newLinkedHashMap();
-    *///?}
-
-    @Nullable
-    private AdvancementTab selectedTab;
-    private boolean movingTab;
 
     private RefreshedAdvancementsTabList tabWidgetList;
 
     public RefreshedAdvancementsScreen(ClientAdvancementManager advancementHandler) {
         super(advancementHandler);
-
-        this.manager = advancementHandler;
     }
 
     @Override
     protected void init() {
         this.tabWidgetList = new RefreshedAdvancementsTabList(this, 0, 0, SCROLL_AREA_WIDTH, height);
 
-        this.tabs.clear();
-        this.selectedTab = null;
-        this.manager.setListener(this);
-        if (this.selectedTab == null && !this.tabs.isEmpty()) {
-            AdvancementTab advancementTab = this.tabs.values().iterator().next();
+        this.getTabs().clear();
+        this.setSelectedTab(null);
+        this.getManager().setListener(this);
+        if (this.getSelectedTab() == null && !this.getTabs().isEmpty()) {
+            AdvancementTab advancementTab = this.getTabs().values().iterator().next();
 
-            //? = 1.20 {
-             this.manager.selectTab(advancementTab.getRoot().getRoot(), true);
+            //? <= 1.20 {
+             this.getManager().selectTab(advancementTab.getRoot().getRoot(), true);
             //?} else {
-            /*this.manager.selectTab(advancementTab.getRoot().getAdvancementEntry(), true);
+            /*this.getManager().selectTab(advancementTab.getRoot().getAdvancementEntry(), true);
             *///?}
 
         } else {
-            //? = 1.20 {
-             this.manager.selectTab(this.selectedTab == null ? null : this.selectedTab.getRoot().getRoot(), true);
+            //? <= 1.20 {
+             this.getManager().selectTab(this.getSelectedTab() == null ? null : this.getSelectedTab().getRoot().getRoot(), true);
             //?} else {
-            /*this.manager.selectTab(this.selectedTab == null ? null : this.selectedTab.getRoot().getAdvancementEntry(), true);
+            /*this.getManager().selectTab(this.getSelectedTab() == null ? null : this.getSelectedTab().getRoot().getAdvancementEntry(), true);
             *///?}
         }
 
-        this.tabs.values().forEach(tab -> {
+        this.getTabs().values().forEach(tab -> {
             this.tabWidgetList.addAdvancementTab(tab);
         });
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        //? =1.20 {
+        //? <=1.20 {
          this.renderBackground(context);
         //?} else {
         /*this.renderBackground(context, mouseX, mouseY, delta);
@@ -110,7 +95,7 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
 
     @Override
     public void removed() {
-        this.manager.setListener(null);
+        this.getManager().setListener(null);
         ClientPlayNetworkHandler clientPlayNetworkHandler = this.client.getNetworkHandler();
         if (clientPlayNetworkHandler != null) {
             clientPlayNetworkHandler.sendPacket(AdvancementTabC2SPacket.close());
@@ -132,22 +117,14 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
     }
 
     private void drawWidgetTooltip(DrawContext context, int mouseX, int mouseY, int x, int y) {
-        if (this.selectedTab != null) {
+        if (this.getSelectedTab() != null) {
             context.getMatrices().push();
             context.getMatrices().translate(x, y, 400.0F);
             RenderSystem.enableDepthTest();
-            drawAdvancementWidgetTooltip(selectedTab, context, mouseX - x, mouseY - y, x, y);
+            drawAdvancementWidgetTooltip(getSelectedTab(), context, mouseX - x, mouseY - y, x, y);
             RenderSystem.disableDepthTest();
             context.getMatrices().pop();
         }
-
-//        if (this.tabs.size() > 1) {
-//            for (AdvancementTab advancementTab : this.tabs.values()) {
-//                if (advancementTab.isClickOnTab(x, y, mouseX, mouseY)) {
-//                    context.drawTooltip(this.textRenderer, advancementTab.getTitle(), mouseX, mouseY);
-//                }
-//            }
-//        }
     }
 
     public void drawAdvancementWidgetTooltip(AdvancementTab tab, DrawContext context, int mouseX, int mouseY, int x, int y) {
@@ -183,8 +160,8 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
         AdvancementTabAccessor accessor = ((AdvancementTabAccessor) advancementTab);
 
         if (!accessor.refreshed_advancements$isInitialized()) {
-            double viewWidth = this.width - SCROLL_AREA_WIDTH;
-            double viewHeight = this.height;
+            double viewWidth = this.getWidth() - SCROLL_AREA_WIDTH;
+            double viewHeight = this.getHeight();
 
             double centerX = viewWidth / 2.0;
             double centerY = viewHeight / 2.0;
@@ -204,7 +181,7 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
             accessor.refreshed_advancements$setInitialized(true);
         }
 
-        context.enableScissor(xOffset + 2, 0, width, height);
+        context.enableScissor(xOffset + 2, 0, getWidth(), getHeight());
 
         context.getMatrices().push();
         context.getMatrices().translate(xOffset, 0, 0.0F);
@@ -221,7 +198,7 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0 && mouseX > SCROLL_AREA_WIDTH) {
-            this.movingTab = true;
+            this.setMovingTab(true);
             return true;
         }
 
@@ -240,7 +217,7 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
             double deltaX,
             double deltaY
     ) {
-        if (button != 0 || !this.movingTab || mouseX < SCROLL_AREA_WIDTH) {
+        if (button != 0 || !this.isMovingTab() || mouseX < SCROLL_AREA_WIDTH) {
             return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
         }
 
@@ -254,8 +231,8 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (button == 0 && this.movingTab) {
-            this.movingTab = false;
+        if (button == 0 && this.isMovingTab()) {
+            this.setMovingTab(false);
             return true;
         }
 
@@ -266,10 +243,10 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
         @Override
         public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
             if(mouseX > SCROLL_AREA_WIDTH) {
-                moveTabContent(getSelectedTab(), 0, amount * 12);
+                moveTabContent(getSelectedTab(), 0, amount * getScrollAmountVertical());
                 return true;
             } else {
-                tabWidgetList.mouseScrolled(mouseX, mouseY, amount * 12);
+                tabWidgetList.mouseScrolled(mouseX, mouseY, amount * getScrollAmountVertical());
             }
     
             return super.mouseScrolled(mouseX, mouseY, amount);
@@ -278,10 +255,10 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
     /*@Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         if (mouseX > SCROLL_AREA_WIDTH) {
-            moveTabContent(getSelectedTab(), horizontalAmount * 12, verticalAmount * 12);
+            moveTabContent(getSelectedTab(), horizontalAmount * getScrollAmountHorizontal(), verticalAmount * getScrollAmountVertical());
             return true;
         } else {
-            tabWidgetList.mouseScrolled(mouseX, mouseY, verticalAmount * 12);
+            tabWidgetList.mouseScrolled(mouseX, mouseY, verticalAmount * getScrollAmountVertical());
         }
         return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
@@ -334,113 +311,43 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
     }
 
     public @Nullable AdvancementTab getSelectedTab() {
-        return selectedTab;
+        return ((AdvancementsScreenAccessor) this).refreshed_advancements$getSelectedTab();
     }
 
-    //region # ClientAdvancementManager.Listener #
-    //? =1.20 {
-     public void onRootAdded(Advancement root) {
-            AdvancementTab advancementTab = AdvancementTab.create(this.client, this, this.tabs.size(), root);
-            if (advancementTab != null) {
-                this.tabs.put(root, advancementTab);
-            }
-        }
-    
-        public void onRootRemoved(Advancement root) {
-        }
-    
-        public void onDependentAdded(Advancement dependent) {
-            AdvancementTab advancementTab = this.getTab(dependent);
-            if (advancementTab != null) {
-                advancementTab.addAdvancement(dependent);
-            }
-    
-        }
-    
-        public void onDependentRemoved(Advancement dependent) {
-        }
-    
-        public void setProgress(Advancement advancement, AdvancementProgress progress) {
-            AdvancementWidget advancementWidget = this.getAdvancementWidget(advancement);
-            if (advancementWidget != null) {
-                advancementWidget.setProgress(progress);
-            }
-    
-        }
-    
-        public void selectTab(@Nullable Advancement advancement) {
-            this.selectedTab = this.tabs.get(advancement);
-        }
-    
-        public void onClear() {
-            this.tabs.clear();
-            this.selectedTab = null;
-        }
-    
-        @Nullable
-        public AdvancementWidget getAdvancementWidget(Advancement advancement) {
-            AdvancementTab advancementTab = this.getTab(advancement);
-            return advancementTab == null ? null : advancementTab.getWidget(advancement);
-        }
-    
-        @Nullable
-        private AdvancementTab getTab(Advancement advancement) {
-            while(advancement.getParent() != null) {
-                advancement = advancement.getParent();
-            }
-    
-            return this.tabs.get(advancement);
-        }
-    //?} else {
-    /*public void onRootAdded(PlacedAdvancement root) {
-        AdvancementTab advancementTab = AdvancementTab.create(this.client, this, this.tabs.size(), root);
-        if (advancementTab != null) {
-            this.tabs.put(root.getAdvancementEntry(), advancementTab);
-        }
+    public void setSelectedTab(AdvancementTab tab) {
+        ((AdvancementsScreenAccessor) this).refreshed_advancements$setSelectedTab(tab);
     }
 
-    public void onRootRemoved(PlacedAdvancement root) {
+    public Map<Advancement, AdvancementTab> getTabs() {
+        return ((AdvancementsScreenAccessor) this).refreshed_advancements$getTabs();
     }
 
-    public void onDependentAdded(PlacedAdvancement dependent) {
-        AdvancementTab advancementTab = this.getTab(dependent);
-        if (advancementTab != null) {
-            advancementTab.addAdvancement(dependent);
-        }
-
+    public ClientAdvancementManager getManager() {
+        return ((AdvancementsScreenAccessor) this).refreshed_advancements$getAdvancementHandler();
     }
 
-    public void onDependentRemoved(PlacedAdvancement dependent) {
+    public boolean isMovingTab() {
+        return ((AdvancementsScreenAccessor) this).refreshed_advancements$isMovingTab();
     }
 
-    public void setProgress(PlacedAdvancement advancement, AdvancementProgress progress) {
-        AdvancementWidget advancementWidget = this.getAdvancementWidget(advancement);
-        if (advancementWidget != null) {
-            advancementWidget.setProgress(progress);
-        }
-
+    public boolean setMovingTab(boolean bl) {
+        ((AdvancementsScreenAccessor) this).refreshed_advancements$setMovingTab(bl);
+        return bl;
     }
 
-    public void selectTab(@Nullable AdvancementEntry advancement) {
-        this.selectedTab = this.tabs.get(advancement);
+    public int getWidth() {
+        return width;
     }
 
-    public void onClear() {
-        this.tabs.clear();
-        this.selectedTab = null;
+    public int getHeight() {
+        return height;
     }
 
-    @Nullable
-    public AdvancementWidget getAdvancementWidget(PlacedAdvancement advancement) {
-        AdvancementTab advancementTab = this.getTab(advancement);
-        return advancementTab == null ? null : advancementTab.getWidget(advancement.getAdvancementEntry());
+    public int getScrollAmountHorizontal() {
+        return 12;
     }
 
-    @Nullable
-    private AdvancementTab getTab(PlacedAdvancement advancement) {
-        PlacedAdvancement placedAdvancement = advancement.getRoot();
-        return (AdvancementTab)this.tabs.get(placedAdvancement.getAdvancementEntry());
+    public int getScrollAmountVertical() {
+        return 12;
     }
-    *///?}
-    //endregion
 }
