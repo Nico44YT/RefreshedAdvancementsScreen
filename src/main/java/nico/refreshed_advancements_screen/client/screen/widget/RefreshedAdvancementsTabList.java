@@ -1,17 +1,15 @@
 package nico.refreshed_advancements_screen.client.screen.widget;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.DrawableHelper;
+import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.advancement.AdvancementTab;
-import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.util.math.MatrixStack;
 import nico.refreshed_advancements_screen.client.screen.RefreshedAdvancementsScreen;
-import nico.refreshed_advancements_screen.client.screen.util.ScissorStack;
+import nico.refreshed_advancements_screen.client.screen.util.ScissorHelper;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class RefreshedAdvancementsTabList implements Drawable {
     public static final int BUTTON_MARGIN = 2;
@@ -84,7 +82,7 @@ public class RefreshedAdvancementsTabList implements Drawable {
         matrices.push();
         matrices.translate(1, -scrollAmount, 0);
 
-        ScissorStack.enableScissoring(
+        ScissorHelper.enableScissor(
                 getX(),
                 TITLE_AREA_HEIGHT,
                 getWidth(),
@@ -94,7 +92,7 @@ public class RefreshedAdvancementsTabList implements Drawable {
             widget.render(matrices, mouseX, mouseY, tickDelta);
         }
 
-        ScissorStack.enableScissoring(
+        ScissorHelper.enableScissor(
                 getX() + 16,
                 getY(),
                 getWidth() - 16,
@@ -105,7 +103,7 @@ public class RefreshedAdvancementsTabList implements Drawable {
             widget.renderText(matrices, mouseX, mouseY, tickDelta);
         }
 
-        RenderSystem.disableScissor();
+        ScissorHelper.disableScissor();
 
         matrices.pop();
     }
@@ -170,9 +168,9 @@ public class RefreshedAdvancementsTabList implements Drawable {
 
         double adjustedMouseY = mouseY + scrollAmount;
 
-        for (ClickableWidget widget : this.widgets) {
-            if (widget.isMouseOver(mouseX, adjustedMouseY)) {
-                widget.onClick(mouseX, adjustedMouseY);
+        for (Element element : this.widgets) {
+            if (element.isMouseOver(mouseX, adjustedMouseY)) {
+                element.mouseClicked(mouseX, adjustedMouseY, button);
                 return true;
             }
         }
@@ -202,10 +200,6 @@ public class RefreshedAdvancementsTabList implements Drawable {
 
     public int getHeight() {
         return height;
-    }
-
-    public void forEachChild(Consumer<ClickableWidget> consumer) {
-        this.widgets.forEach(consumer);
     }
 
     public RefreshedAdvancementsScreen getScreen() {

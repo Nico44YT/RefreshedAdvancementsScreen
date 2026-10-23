@@ -5,13 +5,15 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.advancement.AdvancementTab;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.Tessellator;
+import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.MathHelper;
-import nico.refreshed_advancements_screen.client.screen.util.ScissorStack;
 import net.minecraft.util.math.Matrix4f;
+import nico.refreshed_advancements_screen.mixin.client.accessor.AdvancementTabAccessor;
 
 
 public class RefreshedAdvancementsButton extends ButtonWidget {
@@ -28,7 +30,7 @@ public class RefreshedAdvancementsButton extends ButtonWidget {
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         MinecraftClient minecraftClient = MinecraftClient.getInstance();
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, this.alpha);
+        RenderSystem.color4f(1.0F, 1.0F, 1.0F, this.alpha);
         RenderSystem.enableBlend();
         RenderSystem.enableDepthTest();
 
@@ -38,20 +40,16 @@ public class RefreshedAdvancementsButton extends ButtonWidget {
             this.refreshed_advancements$fillGradient(matrices, getX(), getY(), getWidth(), getHeight(), 0xBF_00_00_00, 0x0);
         }
 
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 
-        var itemMatrix = RenderSystem.getModelViewStack();
-        itemMatrix.push();
-        itemMatrix.translate(getX(), getY() + 1 - parent.scrollAmount, 0);
-        itemMatrix.scale(0.8f, 0.8f, 1);
-        itemMatrix.translate(1 + 0.8f, 1 + 0.8f, 0);
+        RenderSystem.pushMatrix();
+        RenderSystem.translated(getX(), getY() + 1 - parent.scrollAmount, 0);
+        RenderSystem.scalef(0.8f, 0.8f, 1);
+        RenderSystem.translated(1 + 0.8f, 1 + 0.8f, 0);
 
-        minecraftClient.getItemRenderer().renderInGui(advancementTab.getDisplay().getIcon(), 0, 0);
+        minecraftClient.getItemRenderer().renderInGui(((AdvancementTabAccessor) advancementTab).refreshed_advancements$getDisplay().getIcon(), 0, 0);
 
-        itemMatrix.pop();
-        RenderSystem.applyModelViewMatrix();
-
-        ScissorStack.pop();
+        RenderSystem.popMatrix();
     }
 
     public void renderText(MatrixStack matrices, int mouseX, int mouseY, float delta) {
@@ -96,17 +94,20 @@ public class RefreshedAdvancementsButton extends ButtonWidget {
         refreshed_advancements$fillGradient(matrixStack, x, y, x + width - 1, y + height - 1, startColor, endColor, 0);
     }
 
-    protected static void refreshed_advancements$fillGradient(MatrixStack matrices, int startX, int startY, int endX, int endY, int colorStart, int colorEnd, int z) {
+    protected static void refreshed_advancements$fillGradient(MatrixStack matrices, int xStart, int yStart, int xEnd, int yEnd, int colorStart, int colorEnd, int z) {
         RenderSystem.disableTexture();
         RenderSystem.enableBlend();
+        RenderSystem.disableAlphaTest();
         RenderSystem.defaultBlendFunc();
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        RenderSystem.shadeModel(7425);
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferBuilder = tessellator.getBuffer();
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
-        refreshed_advancements$fillGradient(matrices.peek().getModel(), bufferBuilder, startX, startY, endX, endY, z, colorStart, colorEnd);
+        bufferBuilder.begin(7, VertexFormats.POSITION_COLOR);
+        refreshed_advancements$fillGradient(matrices.peek().getModel(), bufferBuilder, xStart, yStart, xEnd, yEnd, z, colorStart, colorEnd);
         tessellator.draw();
+        RenderSystem.shadeModel(7424);
         RenderSystem.disableBlend();
+        RenderSystem.enableAlphaTest();
         RenderSystem.enableTexture();
     }
 

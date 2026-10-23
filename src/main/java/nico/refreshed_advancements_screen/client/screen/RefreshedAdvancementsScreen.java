@@ -2,19 +2,20 @@ package nico.refreshed_advancements_screen.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.advancement.Advancement;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Drawable;
+import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.advancement.AdvancementTab;
 import net.minecraft.client.gui.screen.advancement.AdvancementWidget;
 import net.minecraft.client.gui.screen.advancement.AdvancementsScreen;
 import net.minecraft.client.network.ClientAdvancementManager;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.network.packet.c2s.play.AdvancementTabC2SPacket;
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.math.MathHelper;
+import nico.refreshed_advancements_screen.client.screen.util.ScissorHelper;
 import nico.refreshed_advancements_screen.client.screen.widget.RefreshedAdvancementsTabList;
 import nico.refreshed_advancements_screen.mixin.client.accessor.AdvancementTabAccessor;
 import nico.refreshed_advancements_screen.mixin.client.accessor.AdvancementsScreenAccessor;
@@ -24,9 +25,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 
 public class RefreshedAdvancementsScreen extends AdvancementsScreen implements ClientAdvancementManager.Listener {
-    protected static final int SCROLL_AREA_WIDTH = 80;
+    public static final int SCROLL_AREA_WIDTH = 80;
 
-    private static final Text SAD_LABEL_TEXT = new TranslatableText("advancements.sad_label");
+    private static final Text SAD_LABEL_TEXT = new LiteralText(":(");
     private static final Text EMPTY_TEXT = new TranslatableText("advancements.empty");
     private static final Text ADVANCEMENTS_TEXT = new TranslatableText("gui.advancements");
 
@@ -58,8 +59,8 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         this.renderBackground(matrices);
 
-        for (Drawable drawable : ((ScreenAccessor) this).refreshed_advancements$getDrawables()) {
-            drawable.render(matrices, mouseX, mouseY, delta);
+        for (Element element : ((ScreenAccessor) this).refreshed_advancements$getChildren()) {
+            if (element instanceof Drawable drawable) drawable.render(matrices, mouseX, mouseY, delta);
         }
 
         drawVerticalLine(matrices, SCROLL_AREA_WIDTH, -1, height + 1, 0xBF_00_00_00);
@@ -92,8 +93,8 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
 
             fill(matrices, offsetX, 0, getWidth(), getHeight(), 0x55_00_00_00);
 
-            drawCenteredTextWithShadow(matrices, this.textRenderer, EMPTY_TEXT.asOrderedText(), centerX, centerY, 0xFF_FF_FF_FF);
-            drawCenteredTextWithShadow(matrices, this.textRenderer, SAD_LABEL_TEXT.asOrderedText(), centerX, centerY + this.textRenderer.fontHeight + 2, 0xFF_FF_FF_FF);
+            drawCenteredText(matrices, this.textRenderer, EMPTY_TEXT, centerX, centerY, 0xFF_FF_FF_FF);
+            drawCenteredText(matrices, this.textRenderer, SAD_LABEL_TEXT, centerX, centerY + this.textRenderer.fontHeight + 2, 0xFF_FF_FF_FF);
             matrices.pop();
         } else {
             matrices.push();
@@ -127,14 +128,12 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
                 if (advancementWidget.shouldRender(originX, originY, mouseX, mouseY)) {
                     isTooltipShown = true;
 
-                    var itemMatrix = RenderSystem.getModelViewStack();
-                    itemMatrix.push();
+                    RenderSystem.pushMatrix();
 
-                    itemMatrix.translate(SCROLL_AREA_WIDTH, 0, 400);
+                    // see AdvancementsWidgetMixin$renderTooltip
                     advancementWidget.drawTooltip(matrices, originX, originY, accessor.refreshed_advancements$getAlpha(), x, y);
 
-                    itemMatrix.pop();
-                    RenderSystem.applyModelViewMatrix();
+                    RenderSystem.popMatrix();
 
                     break;
                 }
@@ -177,21 +176,11 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
             accessor.refreshed_advancements$setInitialized(true);
         }
 
-        Window window = MinecraftClient.getInstance().getWindow();
-
-        double scale = window.getScaleFactor();
-        int framebufferHeight = window.getFramebufferHeight();
-
-        int scissorX = (int) ((xOffset + 2) * scale);
-        int scissorY = (int) (framebufferHeight - (getHeight() * scale));
-        int scissorWidth = (int) (getWidth() * scale);
-        int scissorHeight = (int) (getHeight() * scale);
-
-        RenderSystem.enableScissor(
-                scissorX,
-                scissorY,
-                scissorWidth,
-                scissorHeight
+        ScissorHelper.enableScissor(
+                xOffset + 2,
+                0,
+                getWidth(),
+                getHeight()
         );
 
         matrices.push();
@@ -203,7 +192,7 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
         accessor.refreshed_advancements$getRootWidget().renderWidgets(matrices, x + xOffset, y);
 
         matrices.pop();
-        RenderSystem.disableScissor();
+        ScissorHelper.disableScissor();
 
         matrices.pop();
     }

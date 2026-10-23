@@ -2,10 +2,11 @@
   "required": true,
   "minVersion": "0.8",
   "package": "nico.refreshed_advancements_screen.mixin",
-  "compatibilityLevel": "JAVA_16",
+  "compatibilityLevel": "JAVA_8",
   "mixins": [
   ],
   "client": [
+    "client.AdvancementWidgetMixin",
     "client.GameMenuScreenMixin",
     "client.MinecraftClientMixin",
     "client.accessor.AdvancementsScreenAccessor",

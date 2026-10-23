@@ -1,6 +1,7 @@
 package nico.refreshed_advancements_screen.mixin.client.accessor;
 
 import net.minecraft.advancement.Advancement;
+import net.minecraft.advancement.AdvancementDisplay;
 import net.minecraft.client.gui.screen.advancement.AdvancementTab;
 import net.minecraft.client.gui.screen.advancement.AdvancementWidget;
 import org.spongepowered.asm.mixin.Mixin;
@@ -51,4 +52,7 @@ public interface AdvancementTabAccessor {
 
     @Accessor("alpha")
     void refreshed_advancements$setAlpha(float alpha);
+
+    @Accessor("display")
+    AdvancementDisplay refreshed_advancements$getDisplay();
 }
