@@ -129,7 +129,11 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
                     var itemMatrix = RenderSystem.getModelViewStack();
                     itemMatrix.push();
 
-                    itemMatrix.translate(SCROLL_AREA_WIDTH, 0, 400);
+                    //? =1.19.4 {
+                    /*itemMatrix.translate(0, 0, 400);
+                    *///?} else {
+                     itemMatrix.translate(SCROLL_AREA_WIDTH, 0, 400);
+                    //?}
                     advancementWidget.drawTooltip(matrices, originX, originY, accessor.refreshed_advancements$getAlpha(), x, y);
 
                     itemMatrix.pop();

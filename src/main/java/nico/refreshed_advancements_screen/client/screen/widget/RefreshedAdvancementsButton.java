@@ -13,8 +13,6 @@ import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.MathHelper;
 import nico.refreshed_advancements_screen.client.screen.util.ScissorStack;
 
-
-
 //? =1.19 {
 import net.minecraft.util.math.Matrix4f;
 //?} else {
@@ -45,24 +43,32 @@ public class RefreshedAdvancementsButton extends ButtonWidget {
         RenderSystem.enableDepthTest();
 
         if (this.parent.getScreen().getSelectedTab() == this.advancementTab) {
-            this.fillGradient(matrices, getX(), getY(), getWidth(), getHeight(), 0x3F_FF_FF_FF, 0x0);
+            this.refreshed_advancements$fillGradient(matrices, getX(), getY(), getWidth(), getHeight(), 0x3F_FF_FF_FF, 0x0);
         } else {
-            this.fillGradient(matrices, getX(), getY(), getWidth(), getHeight(), 0xBF_00_00_00, 0x0);
+            this.refreshed_advancements$fillGradient(matrices, getX(), getY(), getWidth(), getHeight(), 0xBF_00_00_00, 0x0);
         }
 
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
-
-        var itemMatrix = RenderSystem.getModelViewStack();
-        itemMatrix.push();
-        itemMatrix.translate(getX(), getY() + 1 - parent.scrollAmount, 0);
-        itemMatrix.scale(0.8f, 0.8f, 1);
-        itemMatrix.translate(1 + 0.8f, 1 + 0.8f, 0);
-
-        minecraftClient.getItemRenderer().renderInGui(advancementTab.getDisplay().getIcon(), 0, 0);
-
-        itemMatrix.pop();
-        RenderSystem.applyModelViewMatrix();
+        //? <1.19.4 {
+                var itemMatrix = RenderSystem.getModelViewStack();
+                itemMatrix.push();
+                itemMatrix.translate(getX(), getY() + 1 - parent.scrollAmount, 0);
+                itemMatrix.scale(0.8f, 0.8f, 1);
+                itemMatrix.translate(1 + 0.8f, 1 + 0.8f, 0);
+        
+                minecraftClient.getItemRenderer().renderInGui(advancementTab.getDisplay().getIcon(), 0, 0);
+        
+                itemMatrix.pop();
+                RenderSystem.applyModelViewMatrix();
+        //?} else {
+        /*matrices.push();
+        matrices.translate(getX(), getY() + 1 - parent.scrollAmount, 0);
+        matrices.scale(0.8f, 0.8f, 1);
+        matrices.translate(1.8, 1.8, 0);
+        minecraftClient.getItemRenderer().renderInGui(matrices, advancementTab.getDisplay().getIcon(), 0, 0);
+        matrices.pop();
+        *///?}
 
         ScissorStack.pop();
     }
@@ -105,12 +111,12 @@ public class RefreshedAdvancementsButton extends ButtonWidget {
     }
 
 
-    public void fillGradient(MatrixStack matrixStack, int x, int y, int width, int height, int startColor, int endColor) {
-        _fillGradient(matrixStack, x, y, x + width - 1, y + height - 1, startColor, endColor, 0);
+    public void refreshed_advancements$fillGradient(MatrixStack matrixStack, int x, int y, int width, int height, int startColor, int endColor) {
+        refreshed_advancements$fillGradient(matrixStack, x, y, x + width - 1, y + height - 1, startColor, endColor, 0);
     }
 
     //? =1.19 {
-    protected static void _fillGradient(MatrixStack matrices, int startX, int startY, int endX, int endY, int colorStart, int colorEnd, int z) {
+    protected static void refreshed_advancements$fillGradient(MatrixStack matrices, int startX, int startY, int endX, int endY, int colorStart, int colorEnd, int z) {
         RenderSystem.disableTexture();
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
@@ -133,22 +139,26 @@ public class RefreshedAdvancementsButton extends ButtonWidget {
         return this.y;
     }
     //?} else {
-    /*protected static void _fillGradient(MatrixStack matrices, int startX, int startY, int endX, int endY, int colorStart, int colorEnd, int z) {
+    /*protected static void refreshed_advancements$fillGradient(MatrixStack matrices, int startX, int startY, int endX, int endY, int colorStart, int colorEnd, int z) {
+        //? <1.19.4 {
         RenderSystem.disableTexture();
+        //?}
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShader(GameRenderer::getPositionColorProgram);
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferBuilder = tessellator.getBuffer();
         bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
-        fillGradient(matrices.peek().getPositionMatrix(), bufferBuilder, startX, startY, endX, endY, z, colorStart, colorEnd);
+        refreshed_advancements$fillGradient(matrices.peek().getPositionMatrix(), bufferBuilder, startX, startY, endX, endY, z, colorStart, colorEnd);
         tessellator.draw();
         RenderSystem.disableBlend();
+        //? <1.19.4 {
         RenderSystem.enableTexture();
+        //?}
     }
     *///?}
 
-    protected static void fillGradient(Matrix4f matrix, BufferBuilder builder, int startX, int startY, int endX, int endY, int z, int colorStart, int colorEnd) {
+    protected static void refreshed_advancements$fillGradient(Matrix4f matrix, BufferBuilder builder, int startX, int startY, int endX, int endY, int z, int colorStart, int colorEnd) {
         float startAlpha = (float) ColorHelper.Argb.getAlpha(colorStart) / 255.0F;
         float startRed = (float) ColorHelper.Argb.getRed(colorStart) / 255.0F;
         float startGreen = (float) ColorHelper.Argb.getGreen(colorStart) / 255.0F;
