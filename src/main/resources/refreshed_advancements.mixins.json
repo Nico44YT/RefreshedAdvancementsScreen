@@ -9,6 +9,7 @@
     "client.GameMenuScreenMixin",
     "client.MinecraftClientMixin",
     "client.accessor.AdvancementTabAccessor",
+    "client.accessor.DrawContextAccessor",
     "client.accessor.ScreenAccessor"
   ],
   "injectors": {

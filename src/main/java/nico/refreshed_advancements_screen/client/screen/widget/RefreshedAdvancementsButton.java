@@ -10,8 +10,8 @@ import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.text.Text;
 import net.minecraft.util.Util;
-import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.MathHelper;
+import nico.refreshed_advancements_screen.mixin.client.accessor.DrawContextAccessor;
 import org.joml.Matrix4f;
 
 public class RefreshedAdvancementsButton extends ButtonWidget {
@@ -28,9 +28,20 @@ public class RefreshedAdvancementsButton extends ButtonWidget {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         MinecraftClient minecraftClient = MinecraftClient.getInstance();
+        //? = 1.21 {
         context.setShaderColor(1.0F, 1.0F, 1.0F, this.alpha);
+        //?} else <=1.21.5 {
+        //RenderSystem.setShaderColor(1, 1, 1, this.alpha);
+        //?} else {
+
+        //?}
+
+        //? <1.21.5 {
         RenderSystem.enableBlend();
         RenderSystem.enableDepthTest();
+        //?} else {
+
+        //?}
 
         if(this.parent.getScreen().getSelectedTab() == this.advancementTab) {
             this.fillGradient(context, getX(), getY(), getWidth(), getHeight(), 0x3F_FF_FF_FF, 0x0);
@@ -38,15 +49,30 @@ public class RefreshedAdvancementsButton extends ButtonWidget {
             this.fillGradient(context, getX(), getY(), getWidth(), getHeight(), 0xBF_00_00_00, 0x0);
         }
 
+        //? = 1.21 {
         context.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        //?} else <=1.21.5 {
+        //RenderSystem.setShaderColor(1, 1, 1, 1);
+        //?} else {
+
+        //?}
         int i = this.active ? 0xFFFFFF : 0xA0A0A0;
 
-        context.getMatrices().push();
-        context.getMatrices().translate(getX(), getY() + 1, 0);
-        context.getMatrices().scale(0.8f, 0.8f, 1);
-        context.getMatrices().translate(1 + 0.8f, 1 + 0.8f, 0);
+        //? <1.21.6 {
+                context.getMatrices().push();
+                context.getMatrices().translate(getX(), getY() + 1, 0);
+                context.getMatrices().scale(0.8f, 0.8f, 1);
+                context.getMatrices().translate(1 + 0.8f, 1 + 0.8f, 0);
+                context.drawItem(advancementTab.getDisplay().getIcon(), 0, 0);
+                context.getMatrices().pop();
+        //?} else {
+        /*context.getMatrices().pushMatrix();
+        context.getMatrices().translate(getX(), getY() + 1);
+        context.getMatrices().scale(0.8f, 0.8f);
+        context.getMatrices().translate(1 + 0.8f, 1 + 0.8f);
         context.drawItem(advancementTab.getDisplay().getIcon(), 0, 0);
-        context.getMatrices().pop();
+        context.getMatrices().popMatrix();
+        *///?}
 
         this.drawMessage(context, minecraftClient.textRenderer, i | MathHelper.ceil(this.alpha * 255.0F) << 24);
     }
@@ -90,31 +116,21 @@ public class RefreshedAdvancementsButton extends ButtonWidget {
         fillGradient(context, startX, startY, endX, endY, 0, colorStart, colorEnd);
     }
 
-    public void fillGradient(DrawContext context, int startX, int startY, int endX, int endY, int z, int colorStart, int colorEnd) {
-        fillGradient(context, RenderLayer.getGui(), startX, startY, endX, endY, colorStart, colorEnd, z);
-    }
 
-    public void fillGradient(DrawContext context, RenderLayer layer, int startX, int startY, int endX, int endY, int colorStart, int colorEnd, int z) {
-        VertexConsumer vertexConsumer = context.getVertexConsumers().getBuffer(layer);
-        fillGradient(context, vertexConsumer, startX, startY, endX, endY, z, colorStart, colorEnd);
-        context.draw();
-    }
-
-    private void fillGradient(DrawContext context, VertexConsumer vertexConsumer, int startX, int startY, int endX, int endY, int z, int colorStart, int colorEnd) {
-        float startAlpha = (float) ColorHelper.Argb.getAlpha(colorStart) / 255.0F;
-        float startRed = (float) ColorHelper.Argb.getRed(colorStart) / 255.0F;
-        float startGreen = (float) ColorHelper.Argb.getGreen(colorStart) / 255.0F;
-        float startBlue = (float) ColorHelper.Argb.getBlue(colorStart) / 255.0F;
-
-        float endAlpha = (float) ColorHelper.Argb.getAlpha(colorEnd) / 255.0F;
-        float endRed = (float) ColorHelper.Argb.getRed(colorEnd) / 255.0F;
-        float endGreen = (float) ColorHelper.Argb.getGreen(colorEnd) / 255.0F;
-        float endBlue = (float) ColorHelper.Argb.getBlue(colorEnd) / 255.0F;
-        Matrix4f matrix4f = context.getMatrices().peek().getPositionMatrix();
-
-        vertexConsumer.vertex(matrix4f, (float)startX, (float)startY, (float)z).color(startRed, startGreen, startBlue, startAlpha).next();
-        vertexConsumer.vertex(matrix4f, (float)startX, (float)endY, (float)z).color(startRed, startGreen, startBlue, startAlpha).next();
-        vertexConsumer.vertex(matrix4f, (float)endX, (float)endY, (float)z).color(endRed, endGreen, endBlue, endAlpha).next();
-        vertexConsumer.vertex(matrix4f, (float)endX, (float)startY, (float)z).color(endRed, endGreen, endBlue, endAlpha).next();
+    private void fillGradient(DrawContext context, int startX, int startY, int endX, int endY, int z, int colorStart, int colorEnd) {
+        //? <1.21.6 {
+                 //? = 1.21 {
+                 VertexConsumer vertexConsumer = context.getVertexConsumers().getBuffer(RenderLayer.getGui());
+                //?} else{
+                /*VertexConsumer vertexConsumer = ((DrawContextAccessor)context).refreshed_advancements$getVertexConsumers().getBuffer(RenderLayer.getGui());
+                *///?}
+                Matrix4f matrix4f = context.getMatrices().peek().getPositionMatrix();
+                vertexConsumer.vertex(matrix4f, (float)startX, (float)startY, (float)z).color(colorStart);
+                vertexConsumer.vertex(matrix4f, (float)startX, (float)endY, (float)z).color(colorStart);
+                vertexConsumer.vertex(matrix4f, (float)endX, (float)endY, (float)z).color(colorEnd);
+                vertexConsumer.vertex(matrix4f, (float)endX, (float)startY, (float)z).color(colorEnd);
+        //?} else {
+        /*context.fill(startX, startY, endX, endY, colorStart);
+        *///?}
     }
 }

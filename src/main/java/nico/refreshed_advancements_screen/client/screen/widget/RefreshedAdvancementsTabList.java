@@ -51,10 +51,10 @@ public class RefreshedAdvancementsTabList implements Widget {
                 BUTTON_HEIGHT,
                 tab,
                 //? = 1.20 {
-                 widget -> screen.selectTab(tab.getRoot().getRoot()),
-                //?} else {
-                /*widget -> screen.selectTab(tab.getRoot().getAdvancementEntry()),
-                *///?}
+                 /*widget -> screen.selectTab(tab.getRoot().getRoot()),
+                *///?} else {
+                widget -> screen.selectTab(tab.getRoot().getAdvancementEntry()),
+                //?}
                 Supplier::get
         );
 
@@ -84,14 +84,24 @@ public class RefreshedAdvancementsTabList implements Widget {
         context.enableScissor(x, TITLE_AREA_HEIGHT, x + width, y + height);
 
         var matrices = context.getMatrices();
-        matrices.push();
+        //? <1.21.6 {
+        context.getMatrices().push();
         matrices.translate(1, -scrollAmount, 0);
+        //?} else {
+        /*context.getMatrices().pushMatrix();
+        matrices.translate(1, (float)-scrollAmount);
+        *///?}
+
 
         for (ClickableWidget widget : widgets) {
             widget.render(context, mouseX, mouseY, tickDelta);
         }
 
-        matrices.pop();
+        //? <1.21.6 {
+        context.getMatrices().pop();
+        //?} else {
+        /*context.getMatrices().popMatrix();
+        *///?}
         context.disableScissor();
     }
 

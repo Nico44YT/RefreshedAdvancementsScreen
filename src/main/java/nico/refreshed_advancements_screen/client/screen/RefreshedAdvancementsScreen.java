@@ -1,9 +1,9 @@
 package nico.refreshed_advancements_screen.client.screen;
 
 import com.google.common.collect.Maps;
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.advancement.Advancement;
+import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.advancement.AdvancementProgress;
+import net.minecraft.advancement.PlacedAdvancement;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.screen.advancement.AdvancementTab;
@@ -20,12 +20,9 @@ import nico.refreshed_advancements_screen.mixin.client.accessor.AdvancementTabAc
 import nico.refreshed_advancements_screen.mixin.client.accessor.ScreenAccessor;
 import org.jetbrains.annotations.Nullable;
 
-//? >= 1.20.2 {
-// import net.minecraft.advancement.AdvancementEntry;
-// import net.minecraft.advancement.PlacedAdvancement;
-//?}
-
 import java.util.Map;
+
+import com.mojang.blaze3d.systems.RenderSystem;
 
 public class RefreshedAdvancementsScreen extends AdvancementsScreen implements ClientAdvancementManager.Listener {
     protected static final int SCROLL_AREA_WIDTH = 80;
@@ -36,11 +33,7 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
     private static final Text EMPTY_TEXT = Text.translatable("advancements.empty");
     private static final Text ADVANCEMENTS_TEXT = Text.translatable("gui.advancements");
 
-    //? = 1.20 {
-     private final Map<Advancement, AdvancementTab> tabs = Maps.newLinkedHashMap();
-    //?} else{
-    /*private final Map<AdvancementEntry, AdvancementTab> tabs = Maps.newLinkedHashMap();
-    *///?}
+    private final Map<AdvancementEntry, AdvancementTab> tabs = Maps.newLinkedHashMap();
 
     @Nullable
     private AdvancementTab selectedTab;
@@ -64,18 +57,9 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
         if (this.selectedTab == null && !this.tabs.isEmpty()) {
             AdvancementTab advancementTab = this.tabs.values().iterator().next();
 
-            //? = 1.20 {
-             this.manager.selectTab(advancementTab.getRoot().getRoot(), true);
-            //?} else {
-            /*this.manager.selectTab(advancementTab.getRoot().getAdvancementEntry(), true);
-            *///?}
-
+            this.manager.selectTab(advancementTab.getRoot().getAdvancementEntry(), true);
         } else {
-            //? = 1.20 {
-             this.manager.selectTab(this.selectedTab == null ? null : this.selectedTab.getRoot().getRoot(), true);
-            //?} else {
-            /*this.manager.selectTab(this.selectedTab == null ? null : this.selectedTab.getRoot().getAdvancementEntry(), true);
-            *///?}
+            this.manager.selectTab(this.selectedTab == null ? null : this.selectedTab.getRoot().getAdvancementEntry(), true);
         }
 
         this.tabs.values().forEach(tab -> {
@@ -86,10 +70,10 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         //? =1.20 {
-         this.renderBackground(context);
-        //?} else {
-        /*this.renderBackground(context, mouseX, mouseY, delta);
-        *///?}
+        /*this.renderBackground(context);
+         *///?} else {
+        this.renderBackground(context, mouseX, mouseY, delta);
+        //?}
 
 
         for (Drawable drawable : ((ScreenAccessor) this).refreshed_advancements$getDrawables()) {
@@ -133,28 +117,38 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
 
     private void drawWidgetTooltip(DrawContext context, int mouseX, int mouseY, int x, int y) {
         if (this.selectedTab != null) {
+            //? <1.21.6 {
             context.getMatrices().push();
-            context.getMatrices().translate(x, y, 400.0F);
-            RenderSystem.enableDepthTest();
-            drawAdvancementWidgetTooltip(selectedTab, context, mouseX - x, mouseY - y, x, y);
-            RenderSystem.disableDepthTest();
-            context.getMatrices().pop();
-        }
+            context.getMatrices().translate(0.0F, 0.0F, 400.0F);
+            //?} else {
+            /*context.getMatrices().pushMatrix();
+            *///?}
 
-//        if (this.tabs.size() > 1) {
-//            for (AdvancementTab advancementTab : this.tabs.values()) {
-//                if (advancementTab.isClickOnTab(x, y, mouseX, mouseY)) {
-//                    context.drawTooltip(this.textRenderer, advancementTab.getTitle(), mouseX, mouseY);
-//                }
-//            }
-//        }
+            //? <1.21.5 {
+            RenderSystem.enableDepthTest();
+            //?}
+            drawAdvancementWidgetTooltip(selectedTab, context, mouseX - x, mouseY - y, x, y);
+            //? <1.21.5 {
+            RenderSystem.disableDepthTest();
+            //?}
+
+            //? <1.21.6 {
+            context.getMatrices().pop();
+            //?} else {
+            /*context.getMatrices().popMatrix();
+            *///?}
+        }
     }
 
     public void drawAdvancementWidgetTooltip(AdvancementTab tab, DrawContext context, int mouseX, int mouseY, int x, int y) {
         AdvancementTabAccessor accessor = ((AdvancementTabAccessor) tab);
 
+        //? <1.21.6 {
         context.getMatrices().push();
         context.getMatrices().translate(0.0F, 0.0F, -200.0F);
+        //?} else {
+        /*context.getMatrices().pushMatrix();
+        *///?}
         context.fill(0, 0, width, height, MathHelper.floor(accessor.refreshed_advancements$getAlpha() * 255f) << 24);
         boolean bl = false;
         int originX = MathHelper.floor(accessor.refreshed_advancements$getOriginX());
@@ -169,7 +163,11 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
             }
         }
 
+        //? <1.21.6 {
         context.getMatrices().pop();
+        //?} else {
+        /*context.getMatrices().popMatrix();
+        *///?}
         float alpha = accessor.refreshed_advancements$getAlpha();
         if (bl) {
             alpha = MathHelper.clamp(alpha + 0.02F, 0.0F, 0.3F);
@@ -206,15 +204,28 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
 
         context.enableScissor(xOffset + 2, 0, width, height);
 
+        //? <1.21.6 {
         context.getMatrices().push();
-        context.getMatrices().translate(xOffset, 0, 0.0F);
+        context.getMatrices().mul(xOffset, 0, 0.0F);
+        //?} else {
+        /*context.getMatrices().pushMatrix();
+        context.getMatrices().translate(xOffset, 0);
+        *///?}
+
+
         int x = MathHelper.floor(accessor.refreshed_advancements$getOriginX());
         int y = MathHelper.floor(accessor.refreshed_advancements$getOriginY());
 
         accessor.refreshed_advancements$getRootWidget().renderLines(context, x, y, true);
         accessor.refreshed_advancements$getRootWidget().renderLines(context, x, y, false);
         accessor.refreshed_advancements$getRootWidget().renderWidgets(context, x, y);
+
+        //? <1.21.6 {
         context.getMatrices().pop();
+        //?} else {
+        /*context.getMatrices().popMatrix();
+        *///?}
+
         context.disableScissor();
     }
 
@@ -262,20 +273,7 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
         return super.mouseReleased(mouseX, mouseY, button);
     }
 
-    //? =1.20 {
-        @Override
-        public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
-            if(mouseX > SCROLL_AREA_WIDTH) {
-                moveTabContent(getSelectedTab(), 0, amount * 12);
-                return true;
-            } else {
-                tabWidgetList.mouseScrolled(mouseX, mouseY, amount * 12);
-            }
-    
-            return super.mouseScrolled(mouseX, mouseY, amount);
-        }
-    //?} else {
-    /*@Override
+    @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         if (mouseX > SCROLL_AREA_WIDTH) {
             moveTabContent(getSelectedTab(), horizontalAmount * 12, verticalAmount * 12);
@@ -285,7 +283,6 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
         }
         return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
-    *///?}
 
     public void moveTabContent(AdvancementTab tab, double offsetX, double offsetY) {
         AdvancementTabAccessor accessor = (AdvancementTabAccessor) tab;
@@ -338,61 +335,8 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
     }
 
     //region # ClientAdvancementManager.Listener #
-    //? =1.20 {
-     public void onRootAdded(Advancement root) {
-            AdvancementTab advancementTab = AdvancementTab.create(this.client, this, this.tabs.size(), root);
-            if (advancementTab != null) {
-                this.tabs.put(root, advancementTab);
-            }
-        }
-    
-        public void onRootRemoved(Advancement root) {
-        }
-    
-        public void onDependentAdded(Advancement dependent) {
-            AdvancementTab advancementTab = this.getTab(dependent);
-            if (advancementTab != null) {
-                advancementTab.addAdvancement(dependent);
-            }
-    
-        }
-    
-        public void onDependentRemoved(Advancement dependent) {
-        }
-    
-        public void setProgress(Advancement advancement, AdvancementProgress progress) {
-            AdvancementWidget advancementWidget = this.getAdvancementWidget(advancement);
-            if (advancementWidget != null) {
-                advancementWidget.setProgress(progress);
-            }
-    
-        }
-    
-        public void selectTab(@Nullable Advancement advancement) {
-            this.selectedTab = this.tabs.get(advancement);
-        }
-    
-        public void onClear() {
-            this.tabs.clear();
-            this.selectedTab = null;
-        }
-    
-        @Nullable
-        public AdvancementWidget getAdvancementWidget(Advancement advancement) {
-            AdvancementTab advancementTab = this.getTab(advancement);
-            return advancementTab == null ? null : advancementTab.getWidget(advancement);
-        }
-    
-        @Nullable
-        private AdvancementTab getTab(Advancement advancement) {
-            while(advancement.getParent() != null) {
-                advancement = advancement.getParent();
-            }
-    
-            return this.tabs.get(advancement);
-        }
-    //?} else {
-    /*public void onRootAdded(PlacedAdvancement root) {
+
+    public void onRootAdded(PlacedAdvancement root) {
         AdvancementTab advancementTab = AdvancementTab.create(this.client, this, this.tabs.size(), root);
         if (advancementTab != null) {
             this.tabs.put(root.getAdvancementEntry(), advancementTab);
@@ -439,8 +383,7 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
     @Nullable
     private AdvancementTab getTab(PlacedAdvancement advancement) {
         PlacedAdvancement placedAdvancement = advancement.getRoot();
-        return (AdvancementTab)this.tabs.get(placedAdvancement.getAdvancementEntry());
+        return this.tabs.get(placedAdvancement.getAdvancementEntry());
     }
-    *///?}
     //endregion
 }
