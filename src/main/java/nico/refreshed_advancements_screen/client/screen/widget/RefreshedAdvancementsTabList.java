@@ -1,5 +1,6 @@
 package nico.refreshed_advancements_screen.client.screen.widget;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.screen.advancement.AdvancementTab;
@@ -20,7 +21,7 @@ public class RefreshedAdvancementsTabList implements Drawable {
     private static final int SCROLLBAR_WIDTH = 2;
     private static final int SCROLLBAR_MIN_HEIGHT = 8;
 
-    public final List<ClickableWidget> widgets;
+    public final List<RefreshedAdvancementsButton> widgets;
     public final RefreshedAdvancementsScreen screen;
 
     public int x;
@@ -62,8 +63,8 @@ public class RefreshedAdvancementsTabList implements Drawable {
             return 0;
         }
 
-        ClickableWidget lastWidget = widgets.get(widgets.size() - 1);
-        return lastWidget.y + lastWidget.getHeight();
+        RefreshedAdvancementsButton lastWidget = widgets.get(widgets.size() - 1);
+        return lastWidget.getY() + lastWidget.getHeight();
     }
 
     private double getMaxScroll() {
@@ -78,30 +79,33 @@ public class RefreshedAdvancementsTabList implements Drawable {
     public void render(MatrixStack matrices, int mouseX, int mouseY, float tickDelta) {
         drawScrollbar(matrices);
 
+        if(screen.getSelectedTab() == null) return;
+
         matrices.push();
         matrices.translate(1, -scrollAmount, 0);
 
-
         ScissorStack.enableScissoring(
-                x,
+                getX(),
                 TITLE_AREA_HEIGHT,
-                width,
-                height
+                getWidth(),
+                getHeight()
         );
-        for (ClickableWidget widget : widgets) {
+        for (RefreshedAdvancementsButton widget : widgets) {
             widget.render(matrices, mouseX, mouseY, tickDelta);
         }
 
         ScissorStack.enableScissoring(
-                (float) (x + 16),
-                (float) (y),
-                width - 16,
-                height
+                getX() + 16,
+                getY(),
+                getWidth() - 16,
+                getHeight()
         );
 
-        for (ClickableWidget widget : widgets) {
-            if(widget instanceof RefreshedAdvancementsButton button) button.renderText(matrices, mouseX, mouseY, tickDelta);
+        for (RefreshedAdvancementsButton widget : widgets) {
+            widget.renderText(matrices, mouseX, mouseY, tickDelta);
         }
+
+        RenderSystem.disableScissor();
 
         matrices.pop();
     }
@@ -145,8 +149,8 @@ public class RefreshedAdvancementsTabList implements Drawable {
     }
 
     public boolean mouseScrolled(double mouseX, double mouseY, double verticalAmount) {
-        if (mouseX < x || mouseX >= x + width
-                || mouseY < y || mouseY >= y + height) {
+        if (mouseX < getX() || mouseX >= getX() + width
+                || mouseY < getY() || mouseY >= getY() + height) {
             return false;
         }
 
@@ -159,8 +163,8 @@ public class RefreshedAdvancementsTabList implements Drawable {
     }
 
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (mouseX < x || mouseX >= x + width
-                || mouseY < y || mouseY >= y + height) {
+        if (mouseX < getX() || mouseX >= getX() + getWidth()
+                || mouseY < getY() || mouseY >= getY() + getHeight()) {
             return false;
         }
 
