@@ -1,17 +1,18 @@
 package nico.refreshed_advancements_screen.client.screen.widget;
 
-import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.Drawable;
+import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.screen.advancement.AdvancementTab;
 import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.gui.widget.Widget;
+import net.minecraft.client.util.math.MatrixStack;
 import nico.refreshed_advancements_screen.client.screen.RefreshedAdvancementsScreen;
+import nico.refreshed_advancements_screen.client.screen.util.ScissorStack;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
-public class RefreshedAdvancementsTabList implements Widget {
+public class RefreshedAdvancementsTabList implements Drawable {
     public static final int BUTTON_MARGIN = 2;
     public static final int BUTTON_HEIGHT = 18;
     public static final int TITLE_AREA_HEIGHT = 13;
@@ -27,7 +28,7 @@ public class RefreshedAdvancementsTabList implements Widget {
     public int width;
     public int height;
 
-    private double scrollAmount = 0;
+    public double scrollAmount = 0;
 
     public RefreshedAdvancementsTabList(RefreshedAdvancementsScreen screen, int x0, int y0, int x1, int y1) {
         this.x = x0;
@@ -50,12 +51,7 @@ public class RefreshedAdvancementsTabList implements Widget {
                 width - BUTTON_MARGIN * 2,
                 BUTTON_HEIGHT,
                 tab,
-                //? = 1.20 {
-                 widget -> screen.selectTab(tab.getRoot().getRoot()),
-                //?} else {
-                /*widget -> screen.selectTab(tab.getRoot().getAdvancementEntry()),
-                *///?}
-                Supplier::get
+                widget -> screen.setSelectedTab(tab)
         );
 
         widgets.add(button);
@@ -67,40 +63,55 @@ public class RefreshedAdvancementsTabList implements Widget {
         }
 
         ClickableWidget lastWidget = widgets.get(widgets.size() - 1);
-        return lastWidget.getY() + lastWidget.getHeight();
+        return lastWidget.y + lastWidget.getHeight();
     }
 
     private double getMaxScroll() {
-        return Math.max(0, getContentHeight() - height + TITLE_AREA_HEIGHT/3);
+        return Math.max(0, getContentHeight() - height + TITLE_AREA_HEIGHT / 3);
     }
 
     private void setScrollAmount(double amount) {
         scrollAmount = Math.max(0, Math.min(amount, getMaxScroll()));
     }
 
-    public void draw(DrawContext context, int mouseX, int mouseY, float tickDelta) {
-        drawScrollbar(context);
+    @Override
+    public void render(MatrixStack matrices, int mouseX, int mouseY, float tickDelta) {
+        drawScrollbar(matrices);
 
-        context.enableScissor(x, TITLE_AREA_HEIGHT, x + width, y + height);
-
-        var matrices = context.getMatrices();
         matrices.push();
         matrices.translate(1, -scrollAmount, 0);
 
+
+        ScissorStack.enableScissoring(
+                x,
+                TITLE_AREA_HEIGHT,
+                width,
+                height
+        );
         for (ClickableWidget widget : widgets) {
-            widget.render(context, mouseX, mouseY, tickDelta);
+            widget.render(matrices, mouseX, mouseY, tickDelta);
+        }
+
+        ScissorStack.enableScissoring(
+                (float) (x + 16),
+                (float) (y),
+                width - 16,
+                height
+        );
+
+        for (ClickableWidget widget : widgets) {
+            if(widget instanceof RefreshedAdvancementsButton button) button.renderText(matrices, mouseX, mouseY, tickDelta);
         }
 
         matrices.pop();
-        context.disableScissor();
     }
 
-    private void drawScrollbar(DrawContext context) {
+    private void drawScrollbar(MatrixStack matrices) {
         int contentHeight = getContentHeight();
         int viewportHeight = height - TITLE_AREA_HEIGHT;
 
         if (contentHeight <= viewportHeight || viewportHeight <= 0) {
-            context.fill(0, 0, SCROLLBAR_WIDTH, height, 0x70_00_00_00);
+            DrawableHelper.fill(matrices, 0, 0, SCROLLBAR_WIDTH, height, 0x70_00_00_00);
             return;
         }
 
@@ -119,10 +130,11 @@ public class RefreshedAdvancementsTabList implements Widget {
                 ? (int) (scrollAmount / maxScroll * maxThumbOffset)
                 : 0;
 
-        context.fill(0, 0, SCROLLBAR_WIDTH, scrollbarY + thumbOffset, 0x70_00_00_00);
-        context.fill(0, scrollbarY + thumbOffset + scrollbarHeight, SCROLLBAR_WIDTH, height, 0x70_00_00_00);
+        DrawableHelper.fill(matrices, 0, 0, SCROLLBAR_WIDTH, scrollbarY + thumbOffset, 0x70_00_00_00);
+        DrawableHelper.fill(matrices, 0, scrollbarY + thumbOffset + scrollbarHeight, SCROLLBAR_WIDTH, height, 0x70_00_00_00);
 
-        context.fill(
+        DrawableHelper.fill(
+                matrices,
                 scrollbarX,
                 scrollbarY + thumbOffset,
                 scrollbarX + SCROLLBAR_WIDTH,
@@ -164,37 +176,30 @@ public class RefreshedAdvancementsTabList implements Widget {
         return false;
     }
 
-    @Override
     public void setX(int x) {
         this.x = x;
     }
 
-    @Override
     public void setY(int y) {
         this.y = y;
     }
 
-    @Override
     public int getX() {
         return x;
     }
 
-    @Override
     public int getY() {
         return y;
     }
 
-    @Override
     public int getWidth() {
         return width;
     }
 
-    @Override
     public int getHeight() {
         return height;
     }
 
-    @Override
     public void forEachChild(Consumer<ClickableWidget> consumer) {
         this.widgets.forEach(consumer);
     }
