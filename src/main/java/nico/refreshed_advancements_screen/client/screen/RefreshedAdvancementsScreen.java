@@ -10,7 +10,7 @@ import net.minecraft.client.gui.screen.advancement.AdvancementsScreen;
 import net.minecraft.client.network.ClientAdvancementManager;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.network.packet.c2s.play.AdvancementTabC2SPacket;
+import net.minecraft.server.network.packet.AdvancementTabC2SPacket;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
@@ -56,29 +56,29 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
     }
 
     @Override
-    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-        this.renderBackground(matrices);
+    public void render(int mouseX, int mouseY, float delta) {
+        this.renderBackground(0);
 
         for (Element element : ((ScreenAccessor) this).refreshed_advancements$getChildren()) {
-            if (element instanceof Drawable drawable) drawable.render(matrices, mouseX, mouseY, delta);
+            if (element instanceof Drawable drawable) drawable.render(mouseX, mouseY, delta);
         }
 
-        drawVerticalLine(matrices, SCROLL_AREA_WIDTH, -1, height + 1, 0xBF_00_00_00);
-        drawVerticalLine(matrices, SCROLL_AREA_WIDTH + 1, -1, height + 1, 0x33_FF_FF_FF);
-        fill(matrices, 2, 0, SCROLL_AREA_WIDTH, height, 0x70_00_00_00);
+        vLine(SCROLL_AREA_WIDTH, -1, height + 1, 0xBF_00_00_00);
+        vLine(SCROLL_AREA_WIDTH + 1, -1, height + 1, 0x33_FF_FF_FF);
+        fill(2, 0, SCROLL_AREA_WIDTH, height, 0x70_00_00_00);
 
-        drawTextWithShadow(matrices, textRenderer, ADVANCEMENTS_TEXT, (SCROLL_AREA_WIDTH - textRenderer.getWidth(ADVANCEMENTS_TEXT)) / 2, 3, 0xFF_FF_FF_FF);
+        drawCenteredString(font, ADVANCEMENTS_TEXT.asFormattedString(), SCROLL_AREA_WIDTH / 2, 3, 0xFF_FF_FF_FF);
 
-        this.tabWidgetList.render(matrices, mouseX, mouseY, delta);
+        this.tabWidgetList.render(mouseX, mouseY, delta);
 
-        this.drawAdvancementTree(matrices, mouseX, mouseY, SCROLL_AREA_WIDTH);
-        this.drawWidgetTooltip(matrices, mouseX, mouseY, SCROLL_AREA_WIDTH, 0);
+        this.drawAdvancementTree(new MatrixStack(), mouseX, mouseY, SCROLL_AREA_WIDTH);
+        this.drawWidgetTooltip(new MatrixStack(), mouseX, mouseY, SCROLL_AREA_WIDTH, 0);
     }
 
     @Override
     public void removed() {
         this.getManager().setListener(null);
-        ClientPlayNetworkHandler clientPlayNetworkHandler = this.client.getNetworkHandler();
+        ClientPlayNetworkHandler clientPlayNetworkHandler = this.minecraft.getNetworkHandler();
         if (clientPlayNetworkHandler != null) {
             clientPlayNetworkHandler.sendPacket(AdvancementTabC2SPacket.close());
         }
@@ -89,12 +89,12 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
         if (advancementTab == null) {
             matrices.push();
             int centerX = getWidth() / 2 + offsetX / 2;
-            int centerY = getHeight() / 2 - this.textRenderer.fontHeight / 2;
+            int centerY = getHeight() / 2 - this.font.fontHeight / 2;
 
-            fill(matrices, offsetX, 0, getWidth(), getHeight(), 0x55_00_00_00);
+            fill(offsetX, 0, getWidth(), getHeight(), 0x55_00_00_00);
 
-            drawCenteredText(matrices, this.textRenderer, EMPTY_TEXT, centerX, centerY, 0xFF_FF_FF_FF);
-            drawCenteredText(matrices, this.textRenderer, SAD_LABEL_TEXT, centerX, centerY + this.textRenderer.fontHeight + 2, 0xFF_FF_FF_FF);
+            drawCenteredString(this.font, EMPTY_TEXT.asFormattedString(), centerX, centerY, 0xFF_FF_FF_FF);
+            drawCenteredString(this.font, SAD_LABEL_TEXT.asFormattedString(), centerX, centerY + this.font.fontHeight + 2, 0xFF_FF_FF_FF);
             matrices.pop();
         } else {
             matrices.push();
@@ -108,7 +108,10 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
             matrices.push();
             matrices.translate(offsetX, offsetY, 400);
             RenderSystem.enableDepthTest();
+            RenderSystem.pushMatrix();
+            RenderSystem.translated(RefreshedAdvancementsScreen.SCROLL_AREA_WIDTH, 0, 400);
             drawAdvancementWidgetTooltip(getSelectedTab(), matrices, mouseX - offsetX, mouseY - offsetY, offsetX, offsetY);
+            RenderSystem.popMatrix();
             RenderSystem.disableDepthTest();
             matrices.pop();
         }
@@ -119,7 +122,7 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
 
         matrices.push();
         matrices.translate(0.0F, 0.0F, -200.0F);
-        fill(matrices, 0, 0, getWidth(), getHeight(), MathHelper.floor(accessor.refreshed_advancements$getAlpha() * 255f) << 24);
+        fill(0, 0, getWidth(), getHeight(), MathHelper.floor(accessor.refreshed_advancements$getAlpha() * 255f) << 24);
         boolean isTooltipShown = false;
         int originX = MathHelper.floor(accessor.refreshed_advancements$getOriginX());
         int originY = MathHelper.floor(accessor.refreshed_advancements$getOriginY());
@@ -131,7 +134,7 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
                     RenderSystem.pushMatrix();
 
                     // see AdvancementsWidgetMixin$renderTooltip
-                    advancementWidget.drawTooltip(matrices, originX, originY, accessor.refreshed_advancements$getAlpha(), x, y);
+                    advancementWidget.drawTooltip(originX, originY, accessor.refreshed_advancements$getAlpha(), x, y);
 
                     RenderSystem.popMatrix();
 
@@ -187,9 +190,9 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
         int x = MathHelper.floor(accessor.refreshed_advancements$getOriginX());
         int y = MathHelper.floor(accessor.refreshed_advancements$getOriginY());
 
-        accessor.refreshed_advancements$getRootWidget().renderLines(matrices, x + xOffset, y, true);
-        accessor.refreshed_advancements$getRootWidget().renderLines(matrices, x + xOffset, y, false);
-        accessor.refreshed_advancements$getRootWidget().renderWidgets(matrices, x + xOffset, y);
+        accessor.refreshed_advancements$getRootWidget().renderLines(x + xOffset, y, true);
+        accessor.refreshed_advancements$getRootWidget().renderLines(x + xOffset, y, false);
+        accessor.refreshed_advancements$getRootWidget().renderWidgets(x + xOffset, y);
 
         matrices.pop();
         ScissorHelper.disableScissor();

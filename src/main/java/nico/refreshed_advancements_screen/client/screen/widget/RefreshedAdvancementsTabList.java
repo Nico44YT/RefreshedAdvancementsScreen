@@ -74,10 +74,11 @@ public class RefreshedAdvancementsTabList implements Drawable {
     }
 
     @Override
-    public void render(MatrixStack matrices, int mouseX, int mouseY, float tickDelta) {
+    public void render(int mouseX, int mouseY, float tickDelta) {
+        MatrixStack matrices = new MatrixStack();
         drawScrollbar(matrices);
 
-        if(screen.getSelectedTab() == null) return;
+        if (screen.getSelectedTab() == null) return;
 
         matrices.push();
         matrices.translate(1, -scrollAmount, 0);
@@ -89,7 +90,7 @@ public class RefreshedAdvancementsTabList implements Drawable {
                 getHeight()
         );
         for (RefreshedAdvancementsButton widget : widgets) {
-            widget.render(matrices, mouseX, mouseY, tickDelta);
+            widget.render(mouseX, mouseY, tickDelta);
         }
 
         ScissorHelper.enableScissor(
@@ -113,7 +114,7 @@ public class RefreshedAdvancementsTabList implements Drawable {
         int viewportHeight = height - TITLE_AREA_HEIGHT;
 
         if (contentHeight <= viewportHeight || viewportHeight <= 0) {
-            DrawableHelper.fill(matrices, 0, 0, SCROLLBAR_WIDTH, height, 0x70_00_00_00);
+            DrawableHelper.fill(0, 0, SCROLLBAR_WIDTH, height, 0x70_00_00_00);
             return;
         }
 
@@ -132,11 +133,10 @@ public class RefreshedAdvancementsTabList implements Drawable {
                 ? (int) (scrollAmount / maxScroll * maxThumbOffset)
                 : 0;
 
-        DrawableHelper.fill(matrices, 0, 0, SCROLLBAR_WIDTH, scrollbarY + thumbOffset, 0x70_00_00_00);
-        DrawableHelper.fill(matrices, 0, scrollbarY + thumbOffset + scrollbarHeight, SCROLLBAR_WIDTH, height, 0x70_00_00_00);
+        DrawableHelper.fill(0, 0, SCROLLBAR_WIDTH, scrollbarY + thumbOffset, 0x70_00_00_00);
+        DrawableHelper.fill(0, scrollbarY + thumbOffset + scrollbarHeight, SCROLLBAR_WIDTH, height, 0x70_00_00_00);
 
         DrawableHelper.fill(
-                matrices,
                 scrollbarX,
                 scrollbarY + thumbOffset,
                 scrollbarX + SCROLLBAR_WIDTH,

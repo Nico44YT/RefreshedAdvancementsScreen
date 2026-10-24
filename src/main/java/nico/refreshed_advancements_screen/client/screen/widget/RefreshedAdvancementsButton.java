@@ -8,11 +8,12 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormats;
+import net.minecraft.client.util.math.Matrix4f;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Matrix4f;
 import nico.refreshed_advancements_screen.mixin.client.accessor.AdvancementTabAccessor;
 
 
@@ -20,24 +21,30 @@ public class RefreshedAdvancementsButton extends ButtonWidget {
     protected final AdvancementTab advancementTab;
     protected final RefreshedAdvancementsTabList parent;
 
+    private final int width;
+    private final int height;
+
     protected RefreshedAdvancementsButton(RefreshedAdvancementsTabList parent, int x, int y, int width, int height, AdvancementTab advancementTab, PressAction onPress) {
         super(x, y, width, height, advancementTab.getTitle(), onPress);
+
+        this.width = width;
+        this.height = height;
 
         this.parent = parent;
         this.advancementTab = advancementTab;
     }
 
     @Override
-    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+    public void render(int mouseX, int mouseY, float delta) {
         MinecraftClient minecraftClient = MinecraftClient.getInstance();
         RenderSystem.color4f(1.0F, 1.0F, 1.0F, this.alpha);
         RenderSystem.enableBlend();
         RenderSystem.enableDepthTest();
 
         if (this.parent.getScreen().getSelectedTab() == this.advancementTab) {
-            this.refreshed_advancements$fillGradient(matrices, getX(), getY(), getWidth(), getHeight(), 0x3F_FF_FF_FF, 0x0);
+            this.refreshed_advancements$fillGradient(getX(), getY(), getWidth(), getHeight(), 0x3F_FF_FF_FF, 0x0);
         } else {
-            this.refreshed_advancements$fillGradient(matrices, getX(), getY(), getWidth(), getHeight(), 0xBF_00_00_00, 0x0);
+            this.refreshed_advancements$fillGradient(getX(), getY(), getWidth(), getHeight(), 0xBF_00_00_00, 0x0);
         }
 
         RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -47,7 +54,7 @@ public class RefreshedAdvancementsButton extends ButtonWidget {
         RenderSystem.scalef(0.8f, 0.8f, 1);
         RenderSystem.translated(1 + 0.8f, 1 + 0.8f, 0);
 
-        minecraftClient.getItemRenderer().renderInGui(((AdvancementTabAccessor) advancementTab).refreshed_advancements$getDisplay().getIcon(), 0, 0);
+        minecraftClient.getItemRenderer().renderGuiItem(((AdvancementTabAccessor) advancementTab).refreshed_advancements$getDisplay().getIcon(), 0, 0);
 
         RenderSystem.popMatrix();
     }
@@ -67,13 +74,13 @@ public class RefreshedAdvancementsButton extends ButtonWidget {
     protected void drawScrollableText(MatrixStack matrixStack, TextRenderer textRenderer, int xMargin, int color) {
         int startX = this.getX() + xMargin;
         int endX = this.getX() + this.getWidth();
-        drawText(matrixStack, textRenderer, this.getMessage(), xMargin, startX, this.getY(), endX, this.getY() + this.getHeight(), color);
+        drawText(matrixStack, textRenderer, new LiteralText(this.getMessage()), xMargin, startX, this.getY(), endX, this.getY() + this.getHeight(), color);
     }
 
     protected void drawText(
             MatrixStack matrices, TextRenderer textRenderer, Text text, int centerX, int startX, int startY, int endX, int endY, int color
     ) {
-        int textWidth = textRenderer.getWidth(text);
+        int textWidth = textRenderer.getStringWidth(text.asFormattedString());
         int renderY = (startY + endY - 9) / 2 + 1;
         int middleX = endX - startX;
         if (textWidth > middleX) {
@@ -83,15 +90,15 @@ public class RefreshedAdvancementsButton extends ButtonWidget {
             double f = Math.sin((Math.PI / 2) * Math.cos((Math.PI * 2) * time / e)) / 2.0 + 0.5;
             double g = MathHelper.lerp(f, 0.0, textStart);
 
-            drawTextWithShadow(matrices, textRenderer, text, startX - (int) g, renderY, color);
+            drawCenteredString(textRenderer, text.asFormattedString(), startX - (int) g, renderY, color);
         } else {
-            drawTextWithShadow(matrices, textRenderer, text, centerX, renderY, color);
+            drawCenteredString(textRenderer, text.asFormattedString(), centerX + (textRenderer.getStringWidth(text.asFormattedString()) + 4)/2, renderY, color);
         }
     }
 
 
-    public void refreshed_advancements$fillGradient(MatrixStack matrixStack, int x, int y, int width, int height, int startColor, int endColor) {
-        refreshed_advancements$fillGradient(matrixStack, x, y, x + width - 1, y + height - 1, startColor, endColor, 0);
+    public void refreshed_advancements$fillGradient(int x, int y, int width, int height, int startColor, int endColor) {
+        refreshed_advancements$fillGradient(new MatrixStack(), x, y, x + width - 1, y + height - 1, startColor, endColor, 0);
     }
 
     protected static void refreshed_advancements$fillGradient(MatrixStack matrices, int xStart, int yStart, int xEnd, int yEnd, int colorStart, int colorEnd, int z) {
@@ -134,6 +141,10 @@ public class RefreshedAdvancementsButton extends ButtonWidget {
 
     public int getY() {
         return this.y;
+    }
+
+    public int getHeight() {
+        return 20;
     }
 
     private static int getAlpha(int color) {
