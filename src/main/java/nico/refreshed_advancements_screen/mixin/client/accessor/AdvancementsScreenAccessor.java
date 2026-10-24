@@ -23,9 +23,9 @@ public interface AdvancementsScreenAccessor {
     @Accessor("selectedTab")
     void refreshed_advancements$setSelectedTab(AdvancementTab tab);
 
-    @Accessor("movingTab")
+    @Accessor("field_2718")
     boolean refreshed_advancements$isMovingTab();
 
-    @Accessor("movingTab")
+    @Accessor("field_2718")
     void refreshed_advancements$setMovingTab(boolean bl);
 }

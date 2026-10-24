@@ -1,10 +1,10 @@
 package nico.refreshed_advancements_screen.client.screen.widget;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.advancement.AdvancementTab;
-import net.minecraft.client.util.math.MatrixStack;
 import nico.refreshed_advancements_screen.client.screen.RefreshedAdvancementsScreen;
 import nico.refreshed_advancements_screen.client.screen.util.ScissorHelper;
 
@@ -75,13 +75,12 @@ public class RefreshedAdvancementsTabList implements Drawable {
 
     @Override
     public void render(int mouseX, int mouseY, float tickDelta) {
-        MatrixStack matrices = new MatrixStack();
-        drawScrollbar(matrices);
+        drawScrollbar();
 
         if (screen.getSelectedTab() == null) return;
 
-        matrices.push();
-        matrices.translate(1, -scrollAmount, 0);
+        GlStateManager.pushMatrix();
+        GlStateManager.translated(1, -scrollAmount, 0);
 
         ScissorHelper.enableScissor(
                 getX(),
@@ -101,15 +100,15 @@ public class RefreshedAdvancementsTabList implements Drawable {
         );
 
         for (RefreshedAdvancementsButton widget : widgets) {
-            widget.renderText(matrices, mouseX, mouseY, tickDelta);
+            widget.renderText(mouseX, mouseY, tickDelta);
         }
 
         ScissorHelper.disableScissor();
 
-        matrices.pop();
+        GlStateManager.popMatrix();
     }
 
-    private void drawScrollbar(MatrixStack matrices) {
+    private void drawScrollbar() {
         int contentHeight = getContentHeight();
         int viewportHeight = height - TITLE_AREA_HEIGHT;
 

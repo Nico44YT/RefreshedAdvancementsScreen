@@ -1,6 +1,6 @@
 package nico.refreshed_advancements_screen.client.screen;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.advancement.Advancement;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.Element;
@@ -9,8 +9,7 @@ import net.minecraft.client.gui.screen.advancement.AdvancementWidget;
 import net.minecraft.client.gui.screen.advancement.AdvancementsScreen;
 import net.minecraft.client.network.ClientAdvancementManager;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.server.network.packet.AdvancementTabC2SPacket;
+import net.minecraft.network.packet.c2s.play.AdvancementTabC2SPacket;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
@@ -45,9 +44,9 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
         this.setSelectedTab(null);
         this.getManager().setListener(this);
         if (this.getSelectedTab() == null && !this.getTabs().isEmpty()) {
-            this.getManager().selectTab(this.getTabs().values().iterator().next().getRoot(), true);
+            this.getManager().selectTab(this.getTabs().values().iterator().next().method_2307(), true);
         } else {
-            this.getManager().selectTab(this.getSelectedTab() == null ? null : this.getSelectedTab().getRoot(), true);
+            this.getManager().selectTab(this.getSelectedTab() == null ? null : this.getSelectedTab().method_2307(), true);
         }
 
         this.getTabs().values().forEach(tab -> {
@@ -71,8 +70,8 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
 
         this.tabWidgetList.render(mouseX, mouseY, delta);
 
-        this.drawAdvancementTree(new MatrixStack(), mouseX, mouseY, SCROLL_AREA_WIDTH);
-        this.drawWidgetTooltip(new MatrixStack(), mouseX, mouseY, SCROLL_AREA_WIDTH, 0);
+        this.drawAdvancementTree(mouseX, mouseY, SCROLL_AREA_WIDTH);
+        this.drawWidgetTooltip(mouseX, mouseY, SCROLL_AREA_WIDTH, 0);
     }
 
     @Override
@@ -84,10 +83,10 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
         }
     }
 
-    private void drawAdvancementTree(MatrixStack matrices, int mouseX, int mouseY, int offsetX) {
+    private void drawAdvancementTree(int mouseX, int mouseY, int offsetX) {
         AdvancementTab advancementTab = getSelectedTab();
         if (advancementTab == null) {
-            matrices.push();
+            GlStateManager.pushMatrix();
             int centerX = getWidth() / 2 + offsetX / 2;
             int centerY = getHeight() / 2 - this.font.fontHeight / 2;
 
@@ -95,55 +94,48 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
 
             drawCenteredString(this.font, EMPTY_TEXT.asFormattedString(), centerX, centerY, 0xFF_FF_FF_FF);
             drawCenteredString(this.font, SAD_LABEL_TEXT.asFormattedString(), centerX, centerY + this.font.fontHeight + 2, 0xFF_FF_FF_FF);
-            matrices.pop();
+            GlStateManager.popMatrix();
         } else {
-            matrices.push();
-            drawAdvancementTabContent(advancementTab, matrices, offsetX);
-            matrices.pop();
+            GlStateManager.pushMatrix();
+            drawAdvancementTabContent(advancementTab, offsetX);
+            GlStateManager.popMatrix();
         }
     }
 
-    private void drawWidgetTooltip(MatrixStack matrices, int mouseX, int mouseY, int offsetX, int offsetY) {
+    private void drawWidgetTooltip(int mouseX, int mouseY, int offsetX, int offsetY) {
         if (this.getSelectedTab() != null) {
-            matrices.push();
-            matrices.translate(offsetX, offsetY, 400);
-            RenderSystem.enableDepthTest();
-            RenderSystem.pushMatrix();
-            RenderSystem.translated(RefreshedAdvancementsScreen.SCROLL_AREA_WIDTH, 0, 400);
-            drawAdvancementWidgetTooltip(getSelectedTab(), matrices, mouseX - offsetX, mouseY - offsetY, offsetX, offsetY);
-            RenderSystem.popMatrix();
-            RenderSystem.disableDepthTest();
-            matrices.pop();
+            //GlStateManager.translated(offsetX, offsetY, 400);
+            GlStateManager.enableDepthTest();
+            GlStateManager.pushMatrix();
+            GlStateManager.translated(RefreshedAdvancementsScreen.SCROLL_AREA_WIDTH, 0, 400);
+            drawAdvancementWidgetTooltip(getSelectedTab(), mouseX - offsetX, mouseY - offsetY, offsetX, offsetY);
+            GlStateManager.popMatrix();
+            GlStateManager.disableDepthTest();
         }
     }
 
-    public void drawAdvancementWidgetTooltip(AdvancementTab tab, MatrixStack matrices, int mouseX, int mouseY, int x, int y) {
+    public void drawAdvancementWidgetTooltip(AdvancementTab tab, int mouseX, int mouseY, int x, int y) {
         AdvancementTabAccessor accessor = ((AdvancementTabAccessor) tab);
-
-        matrices.push();
-        matrices.translate(0.0F, 0.0F, -200.0F);
         fill(0, 0, getWidth(), getHeight(), MathHelper.floor(accessor.refreshed_advancements$getAlpha() * 255f) << 24);
         boolean isTooltipShown = false;
         int originX = MathHelper.floor(accessor.refreshed_advancements$getOriginX());
         int originY = MathHelper.floor(accessor.refreshed_advancements$getOriginY());
         if (mouseX > 0 && mouseX < getWidth() && mouseY > 0 && mouseY < getHeight()) {
             for (AdvancementWidget advancementWidget : accessor.refreshed_advancements$getWidgets().values()) {
-                if (advancementWidget.shouldRender(originX, originY, mouseX, mouseY)) {
+                if (advancementWidget.method_2329(originX, originY, mouseX, mouseY)) { //shouldRender()
                     isTooltipShown = true;
 
-                    RenderSystem.pushMatrix();
+                    GlStateManager.pushMatrix();
 
-                    // see AdvancementsWidgetMixin$renderTooltip
-                    advancementWidget.drawTooltip(originX, originY, accessor.refreshed_advancements$getAlpha(), x, y);
+                    advancementWidget.method_2331(originX, originY, accessor.refreshed_advancements$getAlpha(), x, y); //drawTooltip
 
-                    RenderSystem.popMatrix();
+                    GlStateManager.popMatrix();
 
                     break;
                 }
             }
         }
 
-        matrices.pop();
         float alpha = accessor.refreshed_advancements$getAlpha();
         if (isTooltipShown) {
             alpha = MathHelper.clamp(alpha + 0.02F, 0.0F, 0.3F);
@@ -153,9 +145,10 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
         accessor.refreshed_advancements$setAlpha(alpha);
     }
 
-    private void drawAdvancementTabContent(AdvancementTab advancementTab, MatrixStack matrices, int xOffset) {
+    private void drawAdvancementTabContent(AdvancementTab advancementTab, int xOffset) {
         AdvancementTabAccessor accessor = ((AdvancementTabAccessor) advancementTab);
-        matrices.push();
+
+        GlStateManager.pushMatrix();
 
         if (!accessor.refreshed_advancements$isInitialized()) {
             double viewWidth = this.getWidth() - SCROLL_AREA_WIDTH;
@@ -186,18 +179,18 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
                 getHeight()
         );
 
-        matrices.push();
+        GlStateManager.pushMatrix();
         int x = MathHelper.floor(accessor.refreshed_advancements$getOriginX());
         int y = MathHelper.floor(accessor.refreshed_advancements$getOriginY());
 
-        accessor.refreshed_advancements$getRootWidget().renderLines(x + xOffset, y, true);
-        accessor.refreshed_advancements$getRootWidget().renderLines(x + xOffset, y, false);
-        accessor.refreshed_advancements$getRootWidget().renderWidgets(x + xOffset, y);
+        accessor.refreshed_advancements$getRootWidget().method_2323(x + xOffset, y, true); //renderLines()
+        accessor.refreshed_advancements$getRootWidget().method_2323(x + xOffset, y, false); //renderLines()
+        accessor.refreshed_advancements$getRootWidget().method_2325(x + xOffset, y); //renderWidgets()
 
-        matrices.pop();
+        GlStateManager.popMatrix();
         ScissorHelper.disableScissor();
 
-        matrices.pop();
+        GlStateManager.popMatrix();
     }
 
     @Override

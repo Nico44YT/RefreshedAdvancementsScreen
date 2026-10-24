@@ -7,7 +7,7 @@ import org.lwjgl.opengl.GL11;
 public class ScissorHelper {
 
     public static void enableScissor(float x, float y, float width, float height) {
-        Window window = MinecraftClient.getInstance().getWindow();
+        Window window = MinecraftClient.getInstance().window;
 
         double scale = window.getScaleFactor();
         int framebufferHeight = window.getFramebufferHeight();
