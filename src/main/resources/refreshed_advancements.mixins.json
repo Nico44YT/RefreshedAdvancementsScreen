@@ -6,8 +6,8 @@
   "mixins": [
   ],
   "client": [
-    "client.GameMenuScreenMixin",
     "client.MinecraftClientMixin",
+    "client.accessor.AdvancementsScreenAccessor",
     "client.accessor.AdvancementTabAccessor",
     "client.accessor.DrawContextAccessor",
     "client.accessor.ScreenAccessor"

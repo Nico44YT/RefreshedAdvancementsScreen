@@ -6,6 +6,10 @@ import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.Widget;
 import nico.refreshed_advancements_screen.client.screen.RefreshedAdvancementsScreen;
 
+//? >= 1.21.9 {
+/*import net.minecraft.client.gui.Click;
+*///?}
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -156,6 +160,27 @@ public class RefreshedAdvancementsTabList implements Widget {
         return true;
     }
 
+    //? >=1.21.9 {
+    /*public boolean mouseClicked(Click click, boolean doubled, double mouseX, double mouseY, int button) {
+        if (mouseX < x || mouseX >= x + width
+                || mouseY < y || mouseY >= y + height) {
+            return false;
+        }
+
+        double adjustedMouseY = mouseY + scrollAmount;
+
+        for (ClickableWidget widget : this.widgets) {
+            if (widget.isMouseOver(mouseX, adjustedMouseY)) {
+                widget.onClick(new Click(
+                        mouseX, adjustedMouseY, click.buttonInfo()
+                ), doubled);
+                return true;
+            }
+        }
+
+        return false;
+    }
+    *///?} else {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (mouseX < x || mouseX >= x + width
                 || mouseY < y || mouseY >= y + height) {
@@ -173,6 +198,7 @@ public class RefreshedAdvancementsTabList implements Widget {
 
         return false;
     }
+    //?}
 
     @Override
     public void setX(int x) {

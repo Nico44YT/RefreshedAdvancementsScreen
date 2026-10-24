@@ -1,18 +1,21 @@
 package nico.refreshed_advancements_screen.client.screen.widget;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.advancement.AdvancementTab;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.text.Text;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.MathHelper;
-import nico.refreshed_advancements_screen.mixin.client.accessor.DrawContextAccessor;
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.VertexConsumer;
 import org.joml.Matrix4f;
+import nico.refreshed_advancements_screen.mixin.client.accessor.DrawContextAccessor;
+
+//? =1.21.11 {
+/*import net.minecraft.client.font.DrawnTextConsumer;
+*///?}
 
 public class RefreshedAdvancementsButton extends ButtonWidget {
     protected final AdvancementTab advancementTab;
@@ -25,12 +28,19 @@ public class RefreshedAdvancementsButton extends ButtonWidget {
         this.advancementTab = advancementTab;
     }
 
+    //? =1.21.11 {
+    /*@Override
+    protected void drawIcon(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
+
+    }
+    *///?}
+
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         MinecraftClient minecraftClient = MinecraftClient.getInstance();
-        //? = 1.21 {
+        //? =1.21 {
         context.setShaderColor(1.0F, 1.0F, 1.0F, this.alpha);
-        //?} else <=1.21.5 {
+         //?} else <=1.21.5 {
         //RenderSystem.setShaderColor(1, 1, 1, this.alpha);
         //?} else {
 
@@ -43,15 +53,15 @@ public class RefreshedAdvancementsButton extends ButtonWidget {
 
         //?}
 
-        if(this.parent.getScreen().getSelectedTab() == this.advancementTab) {
+        if (this.parent.getScreen().getSelectedTab() == this.advancementTab) {
             this.fillGradient(context, getX(), getY(), getWidth(), getHeight(), 0x3F_FF_FF_FF, 0x0);
         } else {
             this.fillGradient(context, getX(), getY(), getWidth(), getHeight(), 0xBF_00_00_00, 0x0);
         }
 
-        //? = 1.21 {
+        //? =1.21 {
         context.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        //?} else <=1.21.5 {
+         //?} else <=1.21.5 {
         //RenderSystem.setShaderColor(1, 1, 1, 1);
         //?} else {
 
@@ -74,13 +84,20 @@ public class RefreshedAdvancementsButton extends ButtonWidget {
         context.getMatrices().popMatrix();
         *///?}
 
-        this.drawMessage(context, minecraftClient.textRenderer, i | MathHelper.ceil(this.alpha * 255.0F) << 24);
+        drawScrollableText(context, minecraftClient.textRenderer, 16, i | MathHelper.ceil(this.alpha * 255.0F) << 24);
     }
 
+    //? =1.21.11 {
+    /*@Override
+    protected void drawLabel(DrawnTextConsumer drawer) {
+
+    }
+    *///?} else {
     @Override
     public void drawMessage(DrawContext context, TextRenderer textRenderer, int color) {
-        drawScrollableText(context, textRenderer, 16, color);
+
     }
+    //?}
 
     protected void drawScrollableText(DrawContext context, TextRenderer textRenderer, int xMargin, int color) {
         int startX = this.getX() + xMargin;
@@ -89,7 +106,7 @@ public class RefreshedAdvancementsButton extends ButtonWidget {
     }
 
     protected void drawText(
-            DrawContext context, TextRenderer textRenderer, Text text, int centerX, int startX, int startY, int endX, int endY, int color
+            DrawContext context, TextRenderer textRenderer, net.minecraft.text.Text text, int centerX, int startX, int startY, int endX, int endY, int color
     ) {
         int textWidth = textRenderer.getWidth(text);
         int renderY = (startY + endY - 9) / 2 + 1;
@@ -107,6 +124,7 @@ public class RefreshedAdvancementsButton extends ButtonWidget {
             context.drawTextWithShadow(textRenderer, text, centerX, renderY, color);
         }
     }
+
 
     public void fillGradient(DrawContext context, int x, int y, int width, int height, int startColor, int endColor) {
         _fillGradient(context, x, y, x + width - 1, y + height - 1, startColor, endColor);
@@ -130,7 +148,7 @@ public class RefreshedAdvancementsButton extends ButtonWidget {
                 vertexConsumer.vertex(matrix4f, (float)endX, (float)endY, (float)z).color(colorEnd);
                 vertexConsumer.vertex(matrix4f, (float)endX, (float)startY, (float)z).color(colorEnd);
         //?} else {
-        /*context.fill(startX, startY, endX, endY, colorStart);
+        /*HorizontalColoredQuadGuiElementRenderState.fillGradient(context, startX, startY, endX, endY, z, colorStart, colorEnd);
         *///?}
     }
 }
