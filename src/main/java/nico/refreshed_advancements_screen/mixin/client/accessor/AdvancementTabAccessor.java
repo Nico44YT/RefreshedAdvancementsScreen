@@ -1,8 +1,9 @@
 package nico.refreshed_advancements_screen.mixin.client.accessor;
 
-import net.minecraft.advancement.Advancement;
-import net.minecraft.client.gui.screen.advancement.AdvancementTab;
-import net.minecraft.client.gui.screen.advancement.AdvancementWidget;
+import net.minecraft.advancements.Advancement;
+import net.minecraft.client.gui.screens.advancements.AdvancementTab;
+import net.minecraft.client.gui.screens.advancements.AdvancementWidget;
+import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
@@ -10,45 +11,48 @@ import java.util.Map;
 
 @Mixin(AdvancementTab.class)
 public interface AdvancementTabAccessor {
-    @Accessor("rootWidget")
+    @Accessor("root")
     AdvancementWidget refreshed_advancements$getRootWidget();
 
-    @Accessor("originX")
+    @Accessor("scrollX")
     double refreshed_advancements$getOriginX();
 
-    @Accessor("originY")
+    @Accessor("scrollY")
     double refreshed_advancements$getOriginY();
 
-    @Accessor("originX")
+    @Accessor("scrollX")
     void refreshed_advancements$setOriginX(double originX);
 
-    @Accessor("originY")
+    @Accessor("scrollY")
     void refreshed_advancements$setOriginY(double originY);
 
-    @Accessor("initialized")
+    @Accessor("centered")
     boolean refreshed_advancements$isInitialized();
 
-    @Accessor("initialized")
+    @Accessor("centered")
     void refreshed_advancements$setInitialized(boolean initialized);
 
-    @Accessor("maxPanX")
+    @Accessor("maxX")
     int refreshed_advancements$getMaxPanX();
 
-    @Accessor("maxPanY")
+    @Accessor("maxY")
     int refreshed_advancements$getMaxPanY();
 
-    @Accessor("minPanX")
+    @Accessor("minX")
     int refreshed_advancements$getMinPanX();
 
-    @Accessor("minPanY")
+    @Accessor("minY")
     int refreshed_advancements$getMinPanY();
 
     @Accessor("widgets")
     Map<Advancement, AdvancementWidget> refreshed_advancements$getWidgets();
 
-    @Accessor("alpha")
+    @Accessor("fade")
     float refreshed_advancements$getAlpha();
 
-    @Accessor("alpha")
+    @Accessor("fade")
     void refreshed_advancements$setAlpha(float alpha);
+
+    @Accessor("icon")
+    ItemStack refreshed_advancements$getIcon();
 }
