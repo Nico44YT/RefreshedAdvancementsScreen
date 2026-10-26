@@ -6,6 +6,7 @@ import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
 import net.minecraft.util.CommonColors;
 import nico.refreshed_advancements_screen.client.RefreshedAdvancementsClient;
+import nico.refreshed_advancements_screen.client.screen.widget.ModConfigButton;
 
 import java.util.function.Supplier;
 
@@ -19,6 +20,46 @@ public final class RefreshedAdvancementsConfig implements ConfigData {
         return CONFIG.get().enable;
     }
 
+    @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+    public ModConfigButton.Position config_button_position = ModConfigButton.Position.BOTTOM_LEFT;
+    public static ModConfigButton.Position getConfigButtonPosition() {
+        return CONFIG.get().config_button_position;
+    }
+
+    @ConfigEntry.ColorPicker(allowAlpha = true)
+    public int config_button_color = 0x1F_FF_FF_FF;
+    public static int getConfigButtonColor() {
+        return CONFIG.get().config_button_color;
+    }
+
+    @ConfigEntry.ColorPicker(allowAlpha = true)
+    public int config_button_hover_color = 0x3F_FF_FF_FF;
+    public static int getConfigButtonHoverColor() {
+        return CONFIG.get().config_button_hover_color;
+    }
+
+    @ConfigEntry.ColorPicker(allowAlpha = true)
+    public int config_button_icon_color = 0xBF_FF_FF_FF;
+    public static int getConfigButtonIconColor() {
+        return CONFIG.get().config_button_icon_color;
+    }
+
+    @ConfigEntry.ColorPicker(allowAlpha = true)
+    public int config_button_icon_hover_color = 0xFF_FF_FF_FF;
+    public static int getConfigButtonIconHoverColor() {
+        return CONFIG.get().config_button_icon_hover_color;
+    }
+
+    public int config_button_size = 20;
+    public static int getConfigButtonSize() {
+        return CONFIG.get().config_button_size;
+    }
+
+    public int config_button_margin = 2;
+    public static int getConfigButtonMargin() {
+        return CONFIG.get().config_button_margin;
+    }
+
     public float horizontal_scroll_multiplier = 12;
     public static float getHorizontalScrollMultiplier() {
         return CONFIG.get().horizontal_scroll_multiplier;
@@ -27,6 +68,16 @@ public final class RefreshedAdvancementsConfig implements ConfigData {
     public float vertical_scroll_multiplier = 12;
     public static float getVerticalScrollMultiplier() {
         return CONFIG.get().vertical_scroll_multiplier;
+    }
+
+    public float horizontal_drag_multiplier = 1;
+    public static float getHorizontalDragMultiplier() {
+        return CONFIG.get().horizontal_drag_multiplier;
+    }
+
+    public float vertical_drag_multiplier = 1;
+    public static float getVerticalDragMultiplier() {
+        return CONFIG.get().vertical_drag_multiplier;
     }
 
     @ConfigEntry.ColorPicker(allowAlpha = true)

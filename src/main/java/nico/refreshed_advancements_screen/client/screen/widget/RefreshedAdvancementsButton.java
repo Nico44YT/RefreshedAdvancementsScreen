@@ -11,6 +11,8 @@ import net.minecraft.util.Util;
 import nico.refreshed_advancements_screen.client.config.RefreshedAdvancementsConfig;
 import nico.refreshed_advancements_screen.mixin.client.accessor.AdvancementTabAccessor;
 
+import static nico.refreshed_advancements_screen.client.RefreshedAdvancementsClient.lerpColors;
+
 public class RefreshedAdvancementsButton extends Button {
     protected final AdvancementTab advancementTab;
     protected final RefreshedAdvancementsTabList parent;
@@ -116,15 +118,6 @@ public class RefreshedAdvancementsButton extends Button {
 
     private void fillGradient(GuiGraphicsExtractor graphics, int startX, int startY, int endX, int endY, int z, int colorStart, int colorEnd, RefreshedAdvancementsConfig.GradientOrientation gradientOrientation) {
         HorizontalColoredQuadGuiElementRenderState.fillGradient(graphics, startX, startY, endX, endY, z, colorStart, colorEnd, gradientOrientation);
-    }
-
-    private int lerpColors(int colorA, int colorB, float delta) {
-        int alpha = Mth.lerpDiscrete(delta, colorA >> 24, colorB >> 24);
-        int red = Mth.lerpDiscrete(delta, (colorA >> 16) & 0xFF, (colorB >> 16) & 0xFF);
-        int green = Mth.lerpDiscrete(delta, (colorA >> 8) & 0xFF, (colorB >> 8) & 0xFF);
-        int blue = Mth.lerpDiscrete(delta, colorA & 0xFF, colorB & 0xFF);
-
-        return (alpha << 24) | (red << 16) | (green << 8) | blue;
     }
     //endregion
 }

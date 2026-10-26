@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.advancements.Advancement;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.screens.advancements.AdvancementTab;
@@ -13,6 +14,7 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.multiplayer.ClientAdvancements;
 import net.minecraft.network.chat.Component;
 import nico.refreshed_advancements_screen.client.config.RefreshedAdvancementsConfig;
+import nico.refreshed_advancements_screen.client.config.RefreshedAdvancementsModMenuApiImpl;
 import nico.refreshed_advancements_screen.client.screen.widget.ModConfigButton;
 import nico.refreshed_advancements_screen.client.screen.widget.RefreshedAdvancementsTabList;
 import nico.refreshed_advancements_screen.mixin.client.accessor.AdvancementTabAccessor;
@@ -30,6 +32,7 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
 
     private float fade;
     private RefreshedAdvancementsTabList tabWidgetList;
+    private ModConfigButton modConfigButton;
 
     public RefreshedAdvancementsScreen(ClientAdvancements advancementHandler) {
         super(advancementHandler);
@@ -39,11 +42,23 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
     protected void init() {
         this.tabWidgetList = new RefreshedAdvancementsTabList(this, 0, 0, getScrollAreaWidth(), getHeight());
 
-        if (FabricLoader.getInstance().isModLoaded("cloth-config")) {
-            this.addRenderableWidget(new ModConfigButton( // TODO
-                    this, ModConfigButton.Position.TOP_RIGHT,
-                    (getWidth() - getScrollAreaWidth()) / 2, getHeight() / 2,
-                    getWidth() + getScrollAreaWidth()/2, getHeight()));
+        if (FabricLoader.getInstance().isModLoaded("cloth-config") && RefreshedAdvancementsConfig.getConfigButtonPosition() != ModConfigButton.Position.NONE) {
+            modConfigButton = this.addRenderableWidget(new ModConfigButton(
+                    this, RefreshedAdvancementsConfig.getConfigButtonPosition(),
+                    getWidth() / 2 + getScrollAreaWidth() / 2 + 1, getHeight() / 2,
+                    getWidth() - getScrollAreaWidth() - 1, getHeight(),
+                    button -> {
+
+                        RefreshedAdvancementsScreen screen = new RefreshedAdvancementsScreen(getManager());
+
+                        //? >=26.2 {
+                        /*Minecraft.getInstance().gui.setScreen(RefreshedAdvancementsModMenuApiImpl.CREATE.apply(screen));
+                        *///?} else {
+                        Minecraft.getInstance().setScreen(RefreshedAdvancementsModMenuApiImpl.CREATE.apply(screen));
+                         //?}
+
+                    })
+            );
         }
 
         this.getTabs().clear();
@@ -54,15 +69,15 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
 
             //? >=26.3 {
             /*this.getManager().setSelectedTab(advancementTab.getRootAdvancement(), true);
-             *///?} else {
+            *///?} else {
             this.getManager().setSelectedTab(advancementTab.getRootNode().holder(), true);
-            //?}
+             //?}
         } else {
             //? >=26.3 {
             /*this.getManager().setSelectedTab(this.getSelectedTab() == null ? null : this.getSelectedTab().getRootAdvancement(), true);
-             *///?} else {
+            *///?} else {
             this.getManager().setSelectedTab(this.getSelectedTab() == null ? null : this.getSelectedTab().getRootNode().holder(), true);
-            //?}
+             //?}
         }
 
         this.getTabs().values().forEach(tab -> {
@@ -166,9 +181,9 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
 
                     //? >=26.3 {
                     /*advancementWidget.extractHover(graphics, originX, originY, fade, x, y, width - getScrollAreaWidth());
-                     *///?} else {
+                    *///?} else {
                     advancementWidget.extractHover(graphics, originX, originY, fade, x, y);
-                    //?}
+                     //?}
 
                     break;
                 }
@@ -240,13 +255,16 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
         double mouseX = click.x();
         double mouseY = click.y();
         int button = click.button();
-        if (button == InputConstants.MOUSE_BUTTON_LEFT && mouseX > getScrollAreaWidth()) {
-            this.setMovingTab(true);
-            return true;
-        }
+
+        if (modConfigButton.isMouseOver(mouseX, mouseY)) return modConfigButton.mouseClicked(click, doubleClick);
 
         if (mouseX < getScrollAreaWidth()) {
             return tabWidgetList.mouseClicked(click, doubleClick, mouseX, mouseY, button);
+        }
+
+        if (button == InputConstants.MOUSE_BUTTON_LEFT && mouseX > getScrollAreaWidth()) {
+            this.setMovingTab(true);
+            return true;
         }
 
         return super.mouseClicked(click, doubleClick);
@@ -256,6 +274,7 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
     public boolean mouseDragged(MouseButtonEvent click, double deltaX, double deltaY) {
         double mouseX = click.x();
         int button = click.button();
+
         if (button != InputConstants.MOUSE_BUTTON_LEFT || !this.isMovingTab() || mouseX < getScrollAreaWidth()) {
             this.setMovingTab(false);
             return super.mouseDragged(click, deltaX, deltaY);
@@ -263,7 +282,10 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
 
         AdvancementTab tab = this.getSelectedTab();
         if (tab != null) {
-            this.moveTabContent(tab, deltaX, deltaY);
+            this.moveTabContent(tab,
+                    deltaX * RefreshedAdvancementsConfig.getHorizontalDragMultiplier(),
+                    deltaY * RefreshedAdvancementsConfig.getVerticalDragMultiplier()
+            );
         }
 
         return true;
@@ -272,6 +294,7 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
     @Override
     public boolean mouseReleased(MouseButtonEvent click) {
         int button = click.button();
+
         if (button == 0 && this.isMovingTab()) {
             this.setMovingTab(false);
             return true;
