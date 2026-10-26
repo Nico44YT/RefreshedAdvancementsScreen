@@ -7,13 +7,22 @@
   "authors": [
     "Nico_44"
   ],
-  "contact": {},
+  "contact": {
+    "homepage": "https://github.com/Nico44YT/RefreshedAdvancementsScreen/tree/26.X",
+    "sources": "https://github.com/Nico44YT/RefreshedAdvancementsScreen/tree/26.X",
+    "issues": "https://github.com/Nico44YT/RefreshedAdvancementsScreen/issues"
+  },
   "license": "GPL-3.0",
   "icon": "assets/refreshed_advancements/icon.png",
-  "environment": "*",
+  "environment": "client",
   "accessWidener": "refreshed_advancements.accesswidener",
   "entrypoints": {
-
+    "client": [
+      "nico.refreshed_advancements_screen.client.RefreshedAdvancementsClient"
+    ],
+    "modmenu": [
+      "nico.refreshed_advancements_screen.client.config.RefreshedAdvancementsModMenuApiImpl"
+    ]
   },
   "mixins": [
     "refreshed_advancements.mixins.json"
@@ -22,5 +31,10 @@
     "fabricloader": ">=${loader_version}",
     "fabric-api": "*",
     "minecraft": "${minecraft_required_version}"
+  },
+  "custom": {
+    "modmenu": {
+
+    }
   }
 }

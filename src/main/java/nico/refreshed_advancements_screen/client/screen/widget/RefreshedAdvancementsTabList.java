@@ -6,6 +6,8 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.advancements.AdvancementTab;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
+import nico.refreshed_advancements_screen.client.config.RefreshedAdvancementsConfig;
 import nico.refreshed_advancements_screen.client.screen.RefreshedAdvancementsScreen;
 
 import java.util.ArrayList;
@@ -13,13 +15,6 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class RefreshedAdvancementsTabList extends AbstractWidget {
-    public static final int BUTTON_MARGIN = 2;
-    public static final int BUTTON_HEIGHT = 18;
-    public static final int TITLE_AREA_HEIGHT = 13;
-
-    private static final int SCROLLBAR_WIDTH = 2;
-    private static final int SCROLLBAR_MIN_HEIGHT = 8;
-
     public final List<RefreshedAdvancementsButton> widgets;
     public final RefreshedAdvancementsScreen screen;
 
@@ -33,14 +28,14 @@ public class RefreshedAdvancementsTabList extends AbstractWidget {
     }
 
     public void addAdvancementTab(AdvancementTab tab) {
-        int movedY = (BUTTON_HEIGHT + BUTTON_MARGIN) * this.widgets.size() + TITLE_AREA_HEIGHT;
+        int movedY = (RefreshedAdvancementsConfig.getEntryHeight() + RefreshedAdvancementsConfig.getEntryMargin()) * this.widgets.size() + getTitleAreaHeight();
 
         RefreshedAdvancementsButton button = new RefreshedAdvancementsButton(
                 this,
-                BUTTON_MARGIN,
+                RefreshedAdvancementsConfig.getEntryMargin(),
                 movedY,
-                width - BUTTON_MARGIN * 2,
-                BUTTON_HEIGHT,
+                width - RefreshedAdvancementsConfig.getEntryMargin() * 2,
+                RefreshedAdvancementsConfig.getEntryHeight(),
                 tab,
                 widget -> screen.setSelectedTab(tab),
                 Supplier::get
@@ -59,7 +54,7 @@ public class RefreshedAdvancementsTabList extends AbstractWidget {
     }
 
     private double getMaxScroll() {
-        return Math.max(0, getContentHeight() - height + TITLE_AREA_HEIGHT / 3);
+        return Math.max(0, getContentHeight() - height + getTitleAreaHeight() / 3);
     }
 
     private void setScrollAmount(double amount) {
@@ -68,20 +63,24 @@ public class RefreshedAdvancementsTabList extends AbstractWidget {
 
     @Override
     protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float tickDelta) {
+        graphics.pose().pushMatrix();
+
         drawScrollbar(graphics);
 
-        graphics.enableScissor(getX(), TITLE_AREA_HEIGHT, getX() + getWidth(), getY() + getHeight());
+        graphics.enableScissor(getX(), getTitleAreaHeight(), getX() + getWidth(), getY() + getHeight());
 
-        var matrices = graphics.pose();
-        matrices.pushMatrix();
-        matrices.translate(1, (float) -scrollAmount);
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(RefreshedAdvancementsConfig.getScrollbarEntriesSpacing(), (float)-scrollAmount);
 
         for (RefreshedAdvancementsButton widget : widgets) {
+            graphics.pose().pushMatrix();
             widget.extractRenderState(graphics, mouseX, mouseY, tickDelta);
+            graphics.pose().popMatrix();
         }
-
-        matrices.pushMatrix();
         graphics.disableScissor();
+
+        graphics.pose().popMatrix();
+        graphics.nextStratum();
     }
 
     @Override
@@ -91,17 +90,20 @@ public class RefreshedAdvancementsTabList extends AbstractWidget {
 
     private void drawScrollbar(GuiGraphicsExtractor graphics) {
         int contentHeight = getContentHeight();
-        int viewportHeight = height - TITLE_AREA_HEIGHT;
+        int viewportHeight = getHeight() - getTitleAreaHeight();
+
+        int backgroundColor = RefreshedAdvancementsConfig.getScrollAreaColor();
+        int scrollbarColor = RefreshedAdvancementsConfig.getScrollbarColor();
 
         if (contentHeight <= viewportHeight || viewportHeight <= 0) {
-            graphics.fill(0, 0, SCROLLBAR_WIDTH, height, 0x70_00_00_00);
+            graphics.fill(0, 0, RefreshedAdvancementsConfig.getScrollbarWidth(), getHeight(), backgroundColor);
             return;
         }
 
         int scrollbarX = getX();
-        int scrollbarY = getY() + TITLE_AREA_HEIGHT;
+        int scrollbarY = getY() + getTitleAreaHeight();
         int scrollbarHeight = Math.max(
-                SCROLLBAR_MIN_HEIGHT,
+                RefreshedAdvancementsConfig.getScrollbarMinHeight(),
                 (int) ((double) viewportHeight * viewportHeight / contentHeight)
         );
 
@@ -113,16 +115,34 @@ public class RefreshedAdvancementsTabList extends AbstractWidget {
                 ? (int) (scrollAmount / maxScroll * maxThumbOffset)
                 : 0;
 
-        graphics.fill(0, 0, SCROLLBAR_WIDTH, scrollbarY + thumbOffset, 0x70_00_00_00);
-        graphics.fill(0, scrollbarY + thumbOffset + scrollbarHeight, SCROLLBAR_WIDTH, height, 0x70_00_00_00);
+        graphics.fill(0, 0, RefreshedAdvancementsConfig.getScrollbarWidth(), scrollbarY + thumbOffset, backgroundColor);
+        graphics.fill(0, scrollbarY + thumbOffset + scrollbarHeight, RefreshedAdvancementsConfig.getScrollbarWidth(), getHeight(), backgroundColor);
+
+        int scrollbarWidth = RefreshedAdvancementsConfig.getScrollbarWidth();
+        int scrollbarFadeHeight = Mth.clamp(RefreshedAdvancementsConfig.getScrollbarFadeHeight(), 0, scrollbarHeight/2);
+
+        graphics.fillGradient(scrollbarX,
+                scrollbarY + thumbOffset,
+                scrollbarX + scrollbarWidth,
+                scrollbarY + thumbOffset + scrollbarFadeHeight,
+                backgroundColor, scrollbarColor
+                );
 
         graphics.fill(
                 scrollbarX,
-                scrollbarY + thumbOffset,
-                scrollbarX + SCROLLBAR_WIDTH,
-                scrollbarY + thumbOffset + scrollbarHeight,
-                0x33_FF_FF_FF
+                scrollbarY + thumbOffset + scrollbarFadeHeight,
+                scrollbarX + scrollbarWidth,
+                scrollbarY + thumbOffset + scrollbarHeight - scrollbarFadeHeight,
+                scrollbarColor
         );
+
+        graphics.fillGradient(scrollbarX,
+                scrollbarY + thumbOffset + scrollbarHeight - scrollbarFadeHeight,
+                scrollbarX + scrollbarWidth,
+                scrollbarY + thumbOffset + scrollbarHeight,
+                scrollbarColor, backgroundColor
+        );
+
 
     }
 
@@ -162,5 +182,9 @@ public class RefreshedAdvancementsTabList extends AbstractWidget {
 
     public RefreshedAdvancementsScreen getScreen() {
         return this.screen;
+    }
+
+    private int getTitleAreaHeight() {
+        return RefreshedAdvancementsConfig.shouldDrawAdvancementsTitle() ? 13 : 2;
     }
 }

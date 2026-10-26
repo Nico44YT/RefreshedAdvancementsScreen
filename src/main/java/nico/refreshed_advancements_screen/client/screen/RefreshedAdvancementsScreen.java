@@ -2,6 +2,7 @@ package nico.refreshed_advancements_screen.client.screen;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.cursor.CursorTypes;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Renderable;
@@ -11,7 +12,8 @@ import net.minecraft.client.gui.screens.advancements.AdvancementsScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.multiplayer.ClientAdvancements;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.CommonColors;
+import nico.refreshed_advancements_screen.client.config.RefreshedAdvancementsConfig;
+import nico.refreshed_advancements_screen.client.screen.widget.ModConfigButton;
 import nico.refreshed_advancements_screen.client.screen.widget.RefreshedAdvancementsTabList;
 import nico.refreshed_advancements_screen.mixin.client.accessor.AdvancementTabAccessor;
 import nico.refreshed_advancements_screen.mixin.client.accessor.AdvancementsScreenAccessor;
@@ -22,8 +24,6 @@ import org.jspecify.annotations.NonNull;
 import java.util.Map;
 
 public class RefreshedAdvancementsScreen extends AdvancementsScreen implements ClientAdvancements.Listener {
-    public static final int SCROLL_AREA_WIDTH = 80;
-
     private static final Component SAD_LABEL_TEXT = Component.translatable("advancements.sad_label");
     private static final Component EMPTY_TEXT = Component.translatable("advancements.empty");
     private static final Component ADVANCEMENTS_TEXT = Component.translatable("gui.advancements");
@@ -37,7 +37,14 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
 
     @Override
     protected void init() {
-        this.tabWidgetList = new RefreshedAdvancementsTabList(this, 0, 0, SCROLL_AREA_WIDTH, height);
+        this.tabWidgetList = new RefreshedAdvancementsTabList(this, 0, 0, getScrollAreaWidth(), getHeight());
+
+        if (FabricLoader.getInstance().isModLoaded("cloth-config")) {
+            this.addRenderableWidget(new ModConfigButton( // TODO
+                    this, ModConfigButton.Position.TOP_RIGHT,
+                    (getWidth() - getScrollAreaWidth()) / 2, getHeight() / 2,
+                    getWidth() + getScrollAreaWidth()/2, getHeight()));
+        }
 
         this.getTabs().clear();
         this.setSelectedTab(null);
@@ -72,34 +79,40 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
     public void extractRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         graphics.guiRenderState.nextStratum();
 
-        for (Renderable drawable : ((ScreenAccessor) this).refreshed_advancements$getDrawables()) {
-            drawable.extractRenderState(graphics, mouseX, mouseY, delta);
-        }
-
-        if (this.isMovingTab() && this.getSelectedTab() != null && mouseX > SCROLL_AREA_WIDTH) {
-            if (this.getSelectedTab().canScrollHorizontally() && this.getSelectedTab().canScrollVertically()) {
-                graphics.requestCursor(CursorTypes.RESIZE_ALL);
-            } else if (this.getSelectedTab().canScrollHorizontally()) {
-                graphics.requestCursor(CursorTypes.RESIZE_EW);
-            } else if (this.getSelectedTab().canScrollVertically()) {
-                graphics.requestCursor(CursorTypes.RESIZE_NS);
+        if (RefreshedAdvancementsConfig.shouldChangeMouseCursor()) {
+            if (this.isMovingTab() && this.getSelectedTab() != null && mouseX > getScrollAreaWidth()) {
+                if (this.getSelectedTab().canScrollHorizontally() && this.getSelectedTab().canScrollVertically()) {
+                    graphics.requestCursor(CursorTypes.RESIZE_ALL);
+                } else if (this.getSelectedTab().canScrollHorizontally()) {
+                    graphics.requestCursor(CursorTypes.RESIZE_EW);
+                } else if (this.getSelectedTab().canScrollVertically()) {
+                    graphics.requestCursor(CursorTypes.RESIZE_NS);
+                }
             }
         }
 
         graphics.guiRenderState.nextStratum();
-        graphics.verticalLine(SCROLL_AREA_WIDTH, -1, height + 1, 0xBF_00_00_00);
-        graphics.verticalLine(SCROLL_AREA_WIDTH + 1, -1, height + 1, 0x33_FF_FF_FF);
-        graphics.fill(2, 0, SCROLL_AREA_WIDTH, height, 0x70_00_00_00);
+        graphics.verticalLine(getScrollAreaWidth(), -1, getHeight() + 1, RefreshedAdvancementsConfig.getScrollAreaShadowColor());
+        graphics.verticalLine(getScrollAreaWidth() + 1, -1, getHeight() + 1, RefreshedAdvancementsConfig.getScrollAreaHighlightColor());
+        graphics.fill(RefreshedAdvancementsConfig.getScrollbarWidth(), 0, getScrollAreaWidth(), getHeight(), RefreshedAdvancementsConfig.getScrollAreaColor());
 
         graphics.guiRenderState.nextStratum();
         this.tabWidgetList.extractRenderState(graphics, mouseX, mouseY, delta);
 
-        graphics.centeredText(font, ADVANCEMENTS_TEXT, SCROLL_AREA_WIDTH / 2 - 1, 3, getTextColor());
+        if (RefreshedAdvancementsConfig.shouldDrawAdvancementsTitle())
+            graphics.centeredText(font, ADVANCEMENTS_TEXT, getScrollAreaWidth() / 2 - 1, 3, getTextColor());
 
         graphics.guiRenderState.nextStratum();
-        this.drawAdvancementTree(graphics, mouseX, mouseY, SCROLL_AREA_WIDTH);
+
+        this.drawAdvancementTree(graphics, mouseX, mouseY, getScrollAreaWidth());
         graphics.guiRenderState.nextStratum();
-        this.drawWidgetTooltip(graphics, mouseX, mouseY, SCROLL_AREA_WIDTH, 0);
+
+        this.drawWidgetTooltip(graphics, mouseX, mouseY, getScrollAreaWidth(), 0);
+        graphics.guiRenderState.nextStratum();
+
+        for (Renderable drawable : ((ScreenAccessor) this).refreshed_advancements$getDrawables()) {
+            drawable.extractRenderState(graphics, mouseX, mouseY, delta);
+        }
     }
 
     private void drawAdvancementTree(GuiGraphicsExtractor graphics, int mouseX, int mouseY, int x) {
@@ -108,7 +121,7 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
             int centerX = (getWidth() + x) / 2;
             int centerY = (getHeight() - font.lineHeight) / 2;
 
-            graphics.fill(x, 0, getWidth(), getHeight(), 0x55_00_00_00);
+            graphics.fill(x, 0, getWidth(), getHeight(), RefreshedAdvancementsConfig.getAdvancementsAreaColor());
 
             graphics.guiRenderState.nextStratum();
 
@@ -138,7 +151,7 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
         AdvancementTabAccessor accessor = ((AdvancementTabAccessor) tab);
 
         graphics.pose().pushMatrix();
-        graphics.pose().translate(SCROLL_AREA_WIDTH, 0.0F);
+        graphics.pose().translate(getScrollAreaWidth(), 0.0F);
 
         graphics.fill(0, 0, getWidth(), getHeight(), (int) Math.floor(fade * 255f) << 24);
         graphics.nextStratum();
@@ -152,7 +165,7 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
                     isHoveringOver = true;
 
                     //? >=26.3 {
-                    /*advancementWidget.extractHover(graphics, originX, originY, fade, x, y, width - SCROLL_AREA_WIDTH);
+                    /*advancementWidget.extractHover(graphics, originX, originY, fade, x, y, width - getScrollAreaWidth());
                      *///?} else {
                     advancementWidget.extractHover(graphics, originX, originY, fade, x, y);
                     //?}
@@ -172,12 +185,12 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
     }
 
     private void recalculateTabCenter(AdvancementTab advancementTab, boolean force) {
-        if(advancementTab == null) return;
+        if (advancementTab == null) return;
 
         AdvancementTabAccessor accessor = ((AdvancementTabAccessor) advancementTab);
 
         if (!accessor.refreshed_advancements$isInitialized() || force) {
-            double viewWidth = this.getWidth() - SCROLL_AREA_WIDTH;
+            double viewWidth = this.getWidth() - getScrollAreaWidth();
             double viewHeight = this.getHeight();
 
             double centerX = viewWidth / 2.0;
@@ -219,6 +232,7 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
         graphics.pose().popMatrix();
 
         graphics.disableScissor();
+        graphics.nextStratum();
     }
 
     @Override
@@ -226,12 +240,12 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
         double mouseX = click.x();
         double mouseY = click.y();
         int button = click.button();
-        if (button == InputConstants.MOUSE_BUTTON_LEFT && mouseX > SCROLL_AREA_WIDTH) {
+        if (button == InputConstants.MOUSE_BUTTON_LEFT && mouseX > getScrollAreaWidth()) {
             this.setMovingTab(true);
             return true;
         }
 
-        if (mouseX < SCROLL_AREA_WIDTH) {
+        if (mouseX < getScrollAreaWidth()) {
             return tabWidgetList.mouseClicked(click, doubleClick, mouseX, mouseY, button);
         }
 
@@ -242,7 +256,7 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
     public boolean mouseDragged(MouseButtonEvent click, double deltaX, double deltaY) {
         double mouseX = click.x();
         int button = click.button();
-        if (button != InputConstants.MOUSE_BUTTON_LEFT || !this.isMovingTab() || mouseX < SCROLL_AREA_WIDTH) {
+        if (button != InputConstants.MOUSE_BUTTON_LEFT || !this.isMovingTab() || mouseX < getScrollAreaWidth()) {
             this.setMovingTab(false);
             return super.mouseDragged(click, deltaX, deltaY);
         }
@@ -268,13 +282,12 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        if (mouseX > SCROLL_AREA_WIDTH) {
+        if (mouseX > getScrollAreaWidth()) {
             moveTabContent(getSelectedTab(), horizontalAmount * getHorizontalScrollAmount(), verticalAmount * getVerticalScrollAmount());
             return true;
-        } else {
-            tabWidgetList.mouseScrolled(mouseX, mouseY, verticalAmount * getVerticalScrollAmount());
         }
-        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+
+        return tabWidgetList.mouseScrolled(mouseX, mouseY, verticalAmount * getVerticalScrollAmount());
     }
 
     public void moveTabContent(AdvancementTab tab, double offsetX, double offsetY) {
@@ -287,8 +300,8 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
         double minY = accessor.refreshed_advancements$getMinPanY() - 10;
         double maxY = accessor.refreshed_advancements$getMaxPanY() + 10;
 
-        double viewWidth = this.width - SCROLL_AREA_WIDTH;
-        double viewHeight = this.height;
+        double viewWidth = this.getWidth() - getScrollAreaWidth();
+        double viewHeight = this.getHeight();
 
         double minOriginX = viewWidth - maxX;
         double maxOriginX = -minX;
@@ -358,19 +371,23 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
         return height;
     }
 
-    public int getHorizontalScrollAmount() {
-        return 12;
+    public float getHorizontalScrollAmount() {
+        return RefreshedAdvancementsConfig.getHorizontalScrollMultiplier();
     }
 
-    public int getVerticalScrollAmount() {
-        return 12;
+    public float getVerticalScrollAmount() {
+        return RefreshedAdvancementsConfig.getVerticalScrollMultiplier();
     }
 
     public int getTextColor() {
-        return CommonColors.WHITE;
+        return RefreshedAdvancementsConfig.getTextColor();
     }
 
     private int getTextDropShadowColor() {
-        return CommonColors.DARK_GRAY;
+        return RefreshedAdvancementsConfig.getTextShadowColor();
+    }
+
+    private int getScrollAreaWidth() {
+        return RefreshedAdvancementsConfig.getEntriesAreaWidth();
     }
 }

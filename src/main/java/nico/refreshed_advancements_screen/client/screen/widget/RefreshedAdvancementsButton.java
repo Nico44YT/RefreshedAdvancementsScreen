@@ -8,12 +8,15 @@ import net.minecraft.client.gui.screens.advancements.AdvancementTab;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.util.Util;
-import nico.refreshed_advancements_screen.client.screen.RefreshedAdvancementsScreen;
+import nico.refreshed_advancements_screen.client.config.RefreshedAdvancementsConfig;
 import nico.refreshed_advancements_screen.mixin.client.accessor.AdvancementTabAccessor;
 
 public class RefreshedAdvancementsButton extends Button {
     protected final AdvancementTab advancementTab;
     protected final RefreshedAdvancementsTabList parent;
+
+    protected boolean isHoveringOver;
+    protected float fade;
 
     protected RefreshedAdvancementsButton(RefreshedAdvancementsTabList parent, int x, int y, int width, int height, AdvancementTab advancementTab, OnPress onPress, CreateNarration narrationSupplier) {
         super(x, y, width, height, advancementTab.getTitle(), onPress, narrationSupplier);
@@ -23,44 +26,64 @@ public class RefreshedAdvancementsButton extends Button {
     }
 
     @Override
-    protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+    protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float tickDelta) {
         Minecraft minecraftClient = Minecraft.getInstance();
 
-        if (this.parent.getScreen().getSelectedTab() == this.advancementTab) {
-            this.fillGradient(graphics, getX(), getY(), getWidth(), getHeight(), 0x3F_FF_FF_FF, 0x0);
-        } else {
-            this.fillGradient(graphics, getX(), getY(), getWidth(), getHeight(), 0xBF_00_00_00, 0x0);
+        this.isHoveringOver = isMouseOver(mouseX, mouseY);
+
+        if (this.parent.getScreen().getSelectedTab() == this.advancementTab) { // Selected
+            this.fillGradient(graphics, getX(), getY(), getWidth(), getHeight(),
+                    RefreshedAdvancementsConfig.getSelectedEntryStartColor(),
+                    RefreshedAdvancementsConfig.getSelectedEntryEndColor(),
+                    RefreshedAdvancementsConfig.getSelectedEntryGradientOrientation()
+            );
+        } else { // Unselected
+            this.fillGradient(graphics, getX(), getY(), getWidth(), getHeight(),
+                    lerpColors(RefreshedAdvancementsConfig.getEntryStartColor(), RefreshedAdvancementsConfig.getHoverEntryStartColor(), fade),
+                    lerpColors(RefreshedAdvancementsConfig.getEntryEndColor(), RefreshedAdvancementsConfig.getHoverEntryEndColor(), fade),
+                    RefreshedAdvancementsConfig.getEntryGradientOrientation()
+            );
         }
 
         graphics.nextStratum();
-        int i = this.active ? 0xFFFFFF : 0xA0A0A0;
 
-        float iconScale = 0.8f;
+        if (RefreshedAdvancementsConfig.shouldDrawEntryIcons()) {
+            float iconScale = RefreshedAdvancementsConfig.getEntryIconSize();
 
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(getX(), getY() + 1);
-        graphics.pose().scale(iconScale, iconScale);
-        graphics.pose().translate(1 + iconScale, 1 + iconScale);
+            graphics.pose().pushMatrix();
+            graphics.pose().translate(getX(), getY() + 1);
+            graphics.pose().scale(iconScale, iconScale);
+            graphics.pose().translate(1 + iconScale, 1 + iconScale);
 
-        //? >= 26.3 {
-        /*graphics.fakeItem(((AdvancementTabAccessor)advancementTab).refreshed_advancements$getIcon(), 0, 0);
-        *///?} else {
-        graphics.fakeItem(advancementTab.getDisplay().getIcon().create(), 0, 0);
-        //?}
+            //? >=26.3 {
+            /*graphics.fakeItem(((AdvancementTabAccessor)advancementTab).refreshed_advancements$getIcon(), 0, 0);
+             *///?} else {
+            graphics.fakeItem(advancementTab.getDisplay().getIcon().create(), 0, 0);
+            //?}
 
-        graphics.pose().popMatrix();
+            graphics.pose().popMatrix();
+        }
+        drawScrollableText(graphics, minecraftClient.font, RefreshedAdvancementsConfig.shouldDrawEntryIcons() ? (int) (20 * RefreshedAdvancementsConfig.getEntryIconSize()) : 2,
+                RefreshedAdvancementsConfig.getTextColor(),
+                RefreshedAdvancementsConfig.getTextShadowColor()
+        );
 
-        drawScrollableText(graphics, minecraftClient.font, 16, i | (int)Math.ceil(this.alpha * 255.0F) << 24);
+        if (isHoveringOver) {
+            fade = Math.clamp(fade + 0.2f, 0, 0.3f);
+        } else {
+            fade = Math.clamp(fade - 0.2f, 0, 1.0f);
+        }
     }
 
-    protected void drawScrollableText(GuiGraphicsExtractor graphics, Font textRenderer, int xMargin, int color) {
+    //region # Helper Methods #
+    protected void drawScrollableText(GuiGraphicsExtractor graphics, Font textRenderer, int xMargin, int color, int shadowColor) {
         int startX = this.getX() + xMargin;
         int endX = this.getX() + this.getWidth();
-        drawText(graphics, textRenderer, this.getMessage(), startX, startX, this.getY(), endX, this.getY() + this.getHeight(), color);
+        drawText(graphics, textRenderer, this.getMessage(), startX, startX, this.getY(), endX, this.getY() + this.getHeight(), color, shadowColor);
     }
 
     protected void drawText(
-            GuiGraphicsExtractor graphics, Font textRenderer, Component text, int centerX, int startX, int startY, int endX, int endY, int color
+            GuiGraphicsExtractor graphics, Font textRenderer, Component text, int centerX, int startX, int startY, int endX, int endY, int color, int shadowColor
     ) {
         int textWidth = textRenderer.width(text);
         int renderY = (startY + endY - 9) / 2 + 1;
@@ -72,24 +95,36 @@ public class RefreshedAdvancementsButton extends Button {
             double f = Math.sin((Math.PI / 2) * Math.cos((Math.PI * 2) * time / e)) / 2.0 + 0.5;
             double g = Mth.lerp(f, 0.0, textStart);
             graphics.enableScissor(startX, 0, endX, parent.getScreen().getHeight());
-            graphics.text(textRenderer, text, startX - (int) g, renderY, color);
+            graphics.text(textRenderer, text, startX - (int) g + 1, renderY + 1, shadowColor, false);
+            graphics.text(textRenderer, text, startX - (int) g, renderY, color, false);
             graphics.disableScissor();
         } else {
-            graphics.text(textRenderer, text, centerX, renderY, color);
+            graphics.text(textRenderer, text, centerX + 1, renderY + 1, shadowColor, false);
+            graphics.text(textRenderer, text, centerX, renderY, color, false);
         }
     }
 
 
-    public void fillGradient(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int startColor, int endColor) {
-        _fillGradient(graphics, x, y, x + width - 1, y + height - 1, startColor, endColor);
+    public void fillGradient(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int startColor, int endColor, RefreshedAdvancementsConfig.GradientOrientation gradientOrientation) {
+        _fillGradient(graphics, x, y, x + width - 1, y + height - 1, startColor, endColor, gradientOrientation);
     }
 
-    private void _fillGradient(GuiGraphicsExtractor graphics, int startX, int startY, int endX, int endY, int colorStart, int colorEnd) {
-        fillGradient(graphics, startX, startY, endX, endY, 0, colorStart, colorEnd);
+    private void _fillGradient(GuiGraphicsExtractor graphics, int startX, int startY, int endX, int endY, int colorStart, int colorEnd, RefreshedAdvancementsConfig.GradientOrientation gradientOrientation) {
+        fillGradient(graphics, startX, startY, endX, endY, 0, colorStart, colorEnd, gradientOrientation);
     }
 
 
-    private void fillGradient(GuiGraphicsExtractor graphics, int startX, int startY, int endX, int endY, int z, int colorStart, int colorEnd) {
-        HorizontalColoredQuadGuiElementRenderState.fillGradient(graphics, startX, startY, endX, endY, z, colorStart, colorEnd);
+    private void fillGradient(GuiGraphicsExtractor graphics, int startX, int startY, int endX, int endY, int z, int colorStart, int colorEnd, RefreshedAdvancementsConfig.GradientOrientation gradientOrientation) {
+        HorizontalColoredQuadGuiElementRenderState.fillGradient(graphics, startX, startY, endX, endY, z, colorStart, colorEnd, gradientOrientation);
     }
+
+    private int lerpColors(int colorA, int colorB, float delta) {
+        int alpha = Mth.lerpDiscrete(delta, colorA >> 24, colorB >> 24);
+        int red = Mth.lerpDiscrete(delta, (colorA >> 16) & 0xFF, (colorB >> 16) & 0xFF);
+        int green = Mth.lerpDiscrete(delta, (colorA >> 8) & 0xFF, (colorB >> 8) & 0xFF);
+        int blue = Mth.lerpDiscrete(delta, colorA & 0xFF, colorB & 0xFF);
+
+        return (alpha << 24) | (red << 16) | (green << 8) | blue;
+    }
+    //endregion
 }
