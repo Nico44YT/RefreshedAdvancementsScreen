@@ -14,7 +14,6 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.multiplayer.ClientAdvancements;
 import net.minecraft.network.chat.Component;
 import nico.refreshed_advancements_screen.client.config.RefreshedAdvancementsConfig;
-import nico.refreshed_advancements_screen.client.config.RefreshedAdvancementsModMenuApiImpl;
 import nico.refreshed_advancements_screen.client.screen.widget.ModConfigButton;
 import nico.refreshed_advancements_screen.client.screen.widget.RefreshedAdvancementsTabList;
 import nico.refreshed_advancements_screen.mixin.client.accessor.AdvancementTabAccessor;
@@ -52,10 +51,10 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
                         RefreshedAdvancementsScreen screen = new RefreshedAdvancementsScreen(getManager());
 
                         //? >=26.2 {
-                        /*Minecraft.getInstance().gui.setScreen(RefreshedAdvancementsModMenuApiImpl.CREATE.apply(screen));
-                        *///?} else {
-                        Minecraft.getInstance().setScreen(RefreshedAdvancementsModMenuApiImpl.CREATE.apply(screen));
-                         //?}
+                        /*Minecraft.getInstance().gui.setScreen(RefreshedAdvancementsConfig.SCREEN_FACTORY.apply(screen));
+                         *///?} else {
+                        Minecraft.getInstance().setScreen(RefreshedAdvancementsConfig.SCREEN_FACTORY.apply(screen));
+                        //?}
 
                     })
             );
@@ -69,15 +68,15 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
 
             //? >=26.3 {
             /*this.getManager().setSelectedTab(advancementTab.getRootAdvancement(), true);
-            *///?} else {
+             *///?} else {
             this.getManager().setSelectedTab(advancementTab.getRootNode().holder(), true);
-             //?}
+            //?}
         } else {
             //? >=26.3 {
             /*this.getManager().setSelectedTab(this.getSelectedTab() == null ? null : this.getSelectedTab().getRootAdvancement(), true);
-            *///?} else {
+             *///?} else {
             this.getManager().setSelectedTab(this.getSelectedTab() == null ? null : this.getSelectedTab().getRootNode().holder(), true);
-             //?}
+            //?}
         }
 
         this.getTabs().values().forEach(tab -> {
@@ -181,9 +180,9 @@ public class RefreshedAdvancementsScreen extends AdvancementsScreen implements C
 
                     //? >=26.3 {
                     /*advancementWidget.extractHover(graphics, originX, originY, fade, x, y, width - getScrollAreaWidth());
-                    *///?} else {
+                     *///?} else {
                     advancementWidget.extractHover(graphics, originX, originY, fade, x, y);
-                     //?}
+                    //?}
 
                     break;
                 }

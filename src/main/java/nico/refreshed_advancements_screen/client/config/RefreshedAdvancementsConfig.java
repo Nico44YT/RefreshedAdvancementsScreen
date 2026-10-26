@@ -1,19 +1,26 @@
 package nico.refreshed_advancements_screen.client.config;
 
 import me.shedaniel.autoconfig.AutoConfig;
+import me.shedaniel.autoconfig.AutoConfigClient;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.util.CommonColors;
 import nico.refreshed_advancements_screen.client.RefreshedAdvancementsClient;
 import nico.refreshed_advancements_screen.client.screen.widget.ModConfigButton;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Config(name = RefreshedAdvancementsClient.MOD_ID)
 public final class RefreshedAdvancementsConfig implements ConfigData {
     @ConfigEntry.Gui.Excluded
     private static final Supplier<RefreshedAdvancementsConfig> CONFIG = () -> AutoConfig.getConfigHolder(RefreshedAdvancementsConfig.class).getConfig();
+
+    @ConfigEntry.Gui.Excluded
+    public static final Function<Screen, Screen> SCREEN_FACTORY = parent -> AutoConfigClient.getConfigScreen(RefreshedAdvancementsConfig.class, parent).get();
+
 
     public boolean enable = true;
     public static boolean isEnabled() {
